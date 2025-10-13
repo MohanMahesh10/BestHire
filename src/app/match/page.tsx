@@ -9,6 +9,7 @@ import { Progress } from '@/components/Progress';
 import { storage } from '@/lib/storage';
 import { generateEmbedding } from '@/lib/gemini';
 import { generateEmbeddingML } from '@/lib/ml-parser';
+import { generateClientEmbedding } from '@/lib/client-embeddings';
 import { calculateCandidateMetrics } from '@/lib/metrics';
 import { cosineSimilarity } from '@/lib/utils';
 import { Candidate, CandidateMetrics } from '@/types';
@@ -71,10 +72,20 @@ export default function MatchPage() {
       else if (lowerJobDesc.includes('bachelor')) educationLevel = 'bachelor';
 
       // Generate job embedding once - O(1)
-      if (mode === 'ml') {
+      // Check if we're running in a static export environment
+      const isStaticExport = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+      
+      if (isStaticExport || mode === 'ml') {
+        // Always use ML-based embedding in static export environments
         jobEmbedding = generateEmbeddingML(jobDescription);
       } else {
-        jobEmbedding = await generateEmbedding(jobDescription);
+        try {
+          jobEmbedding = await generateEmbedding(jobDescription);
+        } catch (err) {
+          // Fallback to ML-based embedding if API fails
+          console.log('Falling back to ML embeddings:', err);
+          jobEmbedding = generateEmbeddingML(jobDescription);
+        }
       }
 
       // Process candidates - O(n) for ML mode
@@ -99,10 +110,16 @@ export default function MatchPage() {
         }
         
         let candidateEmbedding: number[];
-        if (mode === 'ml') {
+        // Use the same approach as with job embedding for consistency
+        if (isStaticExport || mode === 'ml') {
           candidateEmbedding = generateEmbeddingML(candidateText);
         } else {
-          candidateEmbedding = await generateEmbedding(candidateText);
+          try {
+            candidateEmbedding = await generateEmbedding(candidateText);
+          } catch (err) {
+            console.log('Falling back to ML embeddings for candidate:', err);
+            candidateEmbedding = generateEmbeddingML(candidateText);
+          }
         }
         
         let similarity = cosineSimilarity(jobEmbedding, candidateEmbedding);

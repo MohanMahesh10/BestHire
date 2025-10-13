@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { parseResume } from '@/lib/parsers';
 import { parseResume as aiParseResume, analyzeSentiment } from '@/lib/gemini';
 import { parseResumeWithML, analyzeSentimentML } from '@/lib/ml-parser';
+import { analyzeClientSentiment } from '@/lib/client-embeddings';
 import { storage } from '@/lib/storage';
 import { Candidate } from '@/types';
 
@@ -43,26 +44,36 @@ export default function UploadPage() {
 
       console.log('Extracted text length:', resumeText.length);
 
-      // Check processing mode
+      // Check processing mode and environment
       const mode = localStorage.getItem('besthire_mode') || 'ml';
+      const isStaticExport = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+      
       let aiData;
       let sentimentScore;
 
-      if (mode === 'ml') {
+      // For static export (GitHub Pages), always use ML-based processing
+      if (isStaticExport || mode === 'ml') {
         // Step 2: Use local ML processing (FAST - O(n))
         console.log('Processing with local ML...');
         aiData = parseResumeWithML(resumeText);
         sentimentScore = analyzeSentimentML(resumeText);
       } else {
-        // Step 2: Use Gemini API (parallel processing)
-        console.log('Analyzing with Gemini AI...');
-        [aiData, sentimentScore] = await Promise.all([
-          aiParseResume(resumeText),
-          analyzeSentiment(resumeText)
-        ]);
+        try {
+          // Step 2: Use Gemini API (parallel processing)
+          console.log('Analyzing with Gemini AI...');
+          [aiData, sentimentScore] = await Promise.all([
+            aiParseResume(resumeText),
+            analyzeSentiment(resumeText)
+          ]);
 
-        if (!aiData) {
-          throw new Error('Failed to parse resume with AI. Switching to local ML...');
+          if (!aiData) {
+            throw new Error('Failed to parse resume with AI');
+          }
+        } catch (apiError) {
+          console.error('API processing failed, falling back to ML:', apiError);
+          // Fallback to ML-based processing if API fails
+          aiData = parseResumeWithML(resumeText);
+          sentimentScore = analyzeSentimentML(resumeText);
         }
       }
 
