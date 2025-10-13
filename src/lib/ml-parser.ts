@@ -2,33 +2,78 @@
 import nlp from 'compromise';
 
 export function parseResumeWithML(text: string) {
-  const doc = nlp(text);
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  // Clean the text first
+  const cleanText = text
+    .replace(/[^\x20-\x7E\n]/g, '') // Remove non-printable characters
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  const doc = nlp(cleanText);
+  const lines = cleanText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
   
   // Enhanced name extraction with multiple strategies
   let name = 'Unknown';
   
-  // Strategy 1: First line if it's a proper name
-  const firstLine = lines[0] || '';
-  const namePattern = /^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)$/;
-  const nameMatch = firstLine.match(namePattern);
+  // Helper function to validate if a string looks like a real name
+  const isValidName = (str: string): boolean => {
+    // Must be 2-4 words
+    const words = str.trim().split(/\s+/);
+    if (words.length < 1 || words.length > 4) return false;
+    
+    // Each word should start with uppercase letter
+    if (!words.every(w => /^[A-Z]/.test(w))) return false;
+    
+    // Should not contain numbers (except Jr, Sr, II, III, IV)
+    if (!/^(jr|sr|ii|iii|iv|v)$/i.test(str) && /\d/.test(str)) return false;
+    
+    // Should not be common resume headers
+    const headers = ['resume', 'curriculum', 'vitae', 'cv', 'profile', 'summary', 'objective', 'contact', 'education', 'experience', 'skills'];
+    if (headers.some(h => str.toLowerCase().includes(h))) return false;
+    
+    // Each word should be at least 2 characters (except middle initials)
+    if (words.some(w => w.length < 2 && !/^[A-Z]\.?$/.test(w))) return false;
+    
+    // Should have at least one vowel in the name
+    if (!/[aeiou]/i.test(str)) return false;
+    
+    return true;
+  };
   
-  if (nameMatch) {
-    name = nameMatch[1];
-  } else {
-    // Strategy 2: Use NLP to find person names
+  // Strategy 1: First few lines looking for proper name pattern
+  for (let i = 0; i < Math.min(10, lines.length); i++) {
+    const line = lines[i].trim();
+    
+    // Skip empty lines
+    if (!line) continue;
+    
+    // Skip lines with email or phone
+    if (line.includes('@') || /\d{3,}/.test(line)) continue;
+    
+    // Look for name patterns: "FirstName LastName" or "FirstName MiddleName LastName"
+    const nameMatch = line.match(/^([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z']+){1,2})$/);
+    
+    if (nameMatch && isValidName(nameMatch[1])) {
+      name = nameMatch[1];
+      break;
+    }
+  }
+  
+  // Strategy 2: Use NLP to find person names if strategy 1 failed
+  if (name === 'Unknown') {
     const people = doc.people().out('array');
-    if (people.length > 0) {
-      name = people[0];
-    } else {
-      // Strategy 3: Look for capitalized words in first 3 lines
-      for (let i = 0; i < Math.min(3, lines.length); i++) {
-        const capitalMatch = lines[i].match(/^([A-Z][a-z]+\s+[A-Z][a-z]+)/);
-        if (capitalMatch) {
-          name = capitalMatch[1];
-          break;
-        }
+    for (const person of people) {
+      if (isValidName(person)) {
+        name = person;
+        break;
       }
+    }
+  }
+  
+  // Strategy 3: Look for "Name:" or "Candidate:" labels
+  if (name === 'Unknown') {
+    const nameLabels = text.match(/(?:Name|Candidate|Applicant):\s*([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z']+){1,2})/i);
+    if (nameLabels && isValidName(nameLabels[1])) {
+      name = nameLabels[1];
     }
   }
   
@@ -317,12 +362,12 @@ export function generateEmbeddingML(text: string): number[] {
     const embedding = new Array(256).fill(0);
     // Create a small embedding based on text length to avoid complete zeros
     const seed = text.length % 256;
-    for (let i = 0; i < 10; i++) {
-      embedding[(seed + i * 7) % 256] = 0.1;
+    for (let i = 0; i < 50; i++) {
+      embedding[(seed + i * 7) % 256] = 0.1 + (i % 10) / 100;
     }
     // Normalize
     const mag = Math.sqrt(embedding.reduce((sum, v) => sum + v * v, 0));
-    return embedding.map(v => mag > 0 ? v / mag : 0);
+    return embedding.map(v => mag > 0 ? v / mag : 0.01);
   }
   
   // Skill-based weighting (boost important terms - tech AND general)
@@ -369,7 +414,7 @@ export function generateEmbeddingML(text: string): number[] {
   for (const bigram of bigrams.slice(0, 50)) {
     const hash = hashString(bigram);
     const pos = hash % 256;
-    embedding[pos] += 0.5 / bigrams.length;
+    embedding[pos] += 0.5 / (bigrams.length || 1);
   }
   
   // Strategy 3: Semantic categories
@@ -391,19 +436,20 @@ export function generateEmbeddingML(text: string): number[] {
       }
     }
     if (catIndex < 256) {
-      embedding[catIndex++] = categoryScore / keywords.length;
+      embedding[catIndex++] = categoryScore / (keywords.length || 1);
     }
   }
   
-  // Normalize the embedding vector
-  const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
-  
-  // If magnitude is zero (empty embedding), return small random values
-  if (magnitude === 0 || isNaN(magnitude)) {
-    return embedding.map((_, i) => (i % 7) * 0.01); // Small non-zero values
+  // Add a baseline to ensure no zero vectors
+  for (let i = 0; i < embedding.length; i++) {
+    embedding[i] += 0.01;
   }
   
-  return embedding.map(val => val / magnitude);
+  // Normalize the embedding vector
+  let magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
+  
+  // Ensure we don't divide by zero
+  return magnitude > 0 ? embedding.map(val => val / magnitude) : embedding.map(() => 0.01);
 }
 
 // Helper function to hash strings consistently

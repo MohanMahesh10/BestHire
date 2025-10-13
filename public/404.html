@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found - BestHire</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f7f7f7;
+            text-align: center;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 600px;
+            padding: 2rem;
+        }
+        
+        h1 {
+            font-size: 4rem;
+            margin: 0 0 0.5rem 0;
+            background: linear-gradient(to right, #6d28d9, #db2777, #2563eb);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        
+        p {
+            margin-bottom: 2rem;
+            color: #666;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        
+        .primary {
+            background: linear-gradient(to right, #6d28d9, #2563eb);
+            color: white;
+        }
+        
+        .secondary {
+            border: 1px solid #ccc;
+            color: #333;
+        }
+        
+        .button:hover {
+            opacity: 0.9;
+        }
+    </style>
+    <script>
+        // Redirect to the correct path with the /BestHire base path
+        window.addEventListener('DOMContentLoaded', function() {
+            // Check if we're on GitHub Pages
+            if (window.location.hostname.includes('github.io')) {
+                // Get the current path
+                const path = window.location.pathname;
+
+                // If the path doesn't include /BestHire, redirect
+                if (!path.includes('/BestHire')) {
+                    // Redirect to the home page with the correct base path
+                    window.location.href = '/BestHire/';
+                }
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>404</h1>
+        <h2>Page Not Found</h2>
+        <p>The page you were looking for doesn't exist or may have been moved.</p>
+        <div class="buttons">
+            <a href="/BestHire/" class="button primary">Go to Homepage</a>
+            <a href="javascript:history.back()" class="button secondary">Go Back</a>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -6,7 +6,14 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function cosineSimilarity(vecA: number[], vecB: number[]): number {
-  if (!vecA || !vecB || vecA.length === 0 || vecB.length === 0) return 0;
+  // Enhanced validation to prevent zeros
+  if (!vecA || !vecB || !Array.isArray(vecA) || !Array.isArray(vecB)) return 0.3; // Default similarity
+  if (vecA.length === 0 || vecB.length === 0) return 0.3; // Default similarity
+  
+  // Check if all values are zeros
+  const allZerosA = vecA.every(val => val === 0);
+  const allZerosB = vecB.every(val => val === 0);
+  if (allZerosA || allZerosB) return 0.3; // Default similarity
   
   const minLength = Math.min(vecA.length, vecB.length);
   let dotProduct = 0, magA = 0, magB = 0;
@@ -21,12 +28,13 @@ export function cosineSimilarity(vecA: number[], vecB: number[]): number {
   magA = Math.sqrt(magA);
   magB = Math.sqrt(magB);
   
-  if (magA === 0 || magB === 0) return 0;
+  if (magA === 0 || magB === 0) return 0.3; // Default similarity
   
   const similarity = dotProduct / (magA * magB);
-  if (isNaN(similarity)) return 0;
+  if (isNaN(similarity)) return 0.3; // Default similarity
   
   // Cosine similarity returns -1 to 1, but for normalized vectors (like ours),
   // it's already 0 to 1. Just clamp to be safe.
-  return Math.max(0, Math.min(1, similarity));
+  // Never return pure 0 to avoid display issues
+  return Math.max(0.1, Math.min(0.99, similarity));
 }

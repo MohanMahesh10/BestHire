@@ -10,10 +10,9 @@ export default function Navigation() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Links with correct paths that respect basePath configuration
   const links = [
-    { href: '/upload', label: 'Upload', icon: Upload },
-    { href: '/match', label: 'Match', icon: Users },
-    { href: '/dashboard', label: 'Analytics', icon: BarChart3 },
+    { href: '/recruit', label: 'Recruit', icon: Upload },
   ];
 
   return (

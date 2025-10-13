@@ -1,22 +1,12 @@
-import * as pdfjs from 'pdfjs-dist';
-import { TextItem } from 'pdfjs-dist/types/src/display/api';
-
-// Set worker source path - required for PDF.js
-// In a static export, we need to use the browser-compatible distribution
-// We need to set the worker URL before using any PDF.js functionality
-const pdfjsWorkerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.296/build/pdf.worker.min.js`;
-pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorkerSrc;
-
+// Simple client-side PDF text extraction without external libraries
 export async function parseResumeClient(file: File): Promise<string> {
   const fileType = file.name.toLowerCase();
   
   if (fileType.endsWith('.pdf')) {
     return parsePDFClient(file);
   } else if (fileType.endsWith('.docx')) {
-    // For DOCX, we could use mammoth.js, but it needs to be configured for browser
-    throw new Error('DOCX parsing in browser is not supported in this deployment. Please convert to PDF.');
+    throw new Error('DOCX parsing in browser is not supported. Please convert to PDF.');
   } else if (fileType.endsWith('.txt')) {
-    // Support plain text files for easy testing
     return file.text();
   } else {
     throw new Error('Unsupported file type. Please upload PDF or TXT');
@@ -24,46 +14,107 @@ export async function parseResumeClient(file: File): Promise<string> {
 }
 
 export async function parsePDFClient(file: File): Promise<string> {
-  try {
-    const arrayBuffer = await file.arrayBuffer();
-    
-    // Use PDF.js to parse the document
-    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
-    
-    let fullText = '';
-    
-    // Extract text from all pages
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      const page = await pdf.getPage(pageNum);
-      const textContent = await page.getTextContent();
-      
-      const pageText = textContent.items
-        .map((item) => (item as TextItem).str)
-        .join(' ');
-      
-      fullText += pageText + '\n';
-    }
-    
-    return fullText.trim();
-  } catch (error) {
-    console.error('Client-side PDF parsing error:', error);
-    
-    // Fallback method for simple PDFs
-    try {
-      const text = await file.text();
-      // Clean up the text to handle binary data
-      const cleanedText = text
-        .replace(/[^\x20-\x7E\n]/g, ' ') // Remove non-printable chars
-        .replace(/\s+/g, ' ')
-        .trim();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const arrayBuffer = e.target?.result as ArrayBuffer;
+        const uint8Array = new Uint8Array(arrayBuffer);
         
-      if (cleanedText.length > 100) {
-        return cleanedText;
+        // Convert to Latin1 string (preserves byte values)
+        let pdfText = '';
+        for (const byte of uint8Array) {
+          pdfText += String.fromCharCode(byte);
+        }
+        
+        // Method 1: Extract text between parentheses (most common in PDFs)
+        const textPattern = /\(([^)]+)\)/g;
+        const matches = [];
+        let match;
+        while ((match = textPattern.exec(pdfText)) !== null) {
+          let text = match[1];
+          // Decode PDF escape sequences
+          text = text
+            .replace(/\\n/g, '\n')
+            .replace(/\\r/g, ' ')
+            .replace(/\\t/g, ' ')
+            .replace(/\\\(/g, '(')
+            .replace(/\\\)/g, ')')
+            .replace(/\\\\/g, '\\')
+            .replace(/\\(\d{3})/g, (_, oct) => String.fromCharCode(parseInt(oct, 8)));
+          
+          if (text.trim()) {
+            matches.push(text);
+          }
+        }
+        
+        // Method 2: Extract text with Tj/TJ operators
+        const tjPattern = /\(([^)]*)\)\s*T[jJ]/g;
+        while ((match = tjPattern.exec(pdfText)) !== null) {
+          let text = match[1];
+          text = text
+            .replace(/\\n/g, '\n')
+            .replace(/\\r/g, ' ')
+            .replace(/\\t/g, ' ')
+            .replace(/\\\(/g, '(')
+            .replace(/\\\)/g, ')')
+            .replace(/\\\\/g, '\\');
+          
+          if (text.trim() && !matches.includes(text)) {
+            matches.push(text);
+          }
+        }
+        
+        // Combine and clean text
+        let extractedText = matches.join(' ');
+        
+        // Additional cleanup
+        extractedText = extractedText
+          .replace(/\s+/g, ' ')  // Normalize whitespace
+          .replace(/\\[a-z]/g, '') // Remove remaining escape sequences
+          .trim();
+        
+        // Decode common UTF-8 sequences that appear as garbled text
+        try {
+          const decoder = new TextDecoder('utf-8', { fatal: false });
+          const bytes = new Uint8Array(extractedText.split('').map(c => c.charCodeAt(0)));
+          const decoded = decoder.decode(bytes);
+          if (decoded.length > extractedText.length * 0.8) {
+            extractedText = decoded;
+          }
+        } catch {
+          // Keep original if decoding fails
+        }
+        
+        if (extractedText.length > 50) {
+          resolve(extractedText);
+        } else {
+          // Fallback: extract all readable characters
+          const fallbackText = Array.from(uint8Array)
+            .map(byte => {
+              // Include extended ASCII and common special characters
+              if ((byte >= 32 && byte <= 126) || byte === 10 || byte === 13 || (byte >= 128 && byte <= 255)) {
+                return String.fromCharCode(byte);
+              }
+              return '';
+            })
+            .join('')
+            .replace(/[^\x20-\x7E\x80-\xFF\n\r]/g, '') // Keep printable chars
+            .replace(/\s+/g, ' ')
+            .trim();
+          
+          if (fallbackText.length > 50) {
+            resolve(fallbackText);
+          } else {
+            reject(new Error('Could not extract text from PDF. Please ensure it is a text-based PDF.'));
+          }
+        }
+      } catch (error) {
+        console.error('PDF parsing error:', error);
+        reject(new Error('Failed to parse PDF file'));
       }
-    } catch (fallbackError) {
-      console.error('Fallback parsing failed:', fallbackError);
-    }
-    
-    throw new Error('Failed to parse PDF. Please ensure the PDF contains selectable text (not scanned images)');
-  }
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsArrayBuffer(file);
+  });
 }

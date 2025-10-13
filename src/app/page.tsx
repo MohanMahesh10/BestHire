@@ -12,9 +12,25 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // Always redirect to setup page first
-    router.push('/setup');
+    // Redirect to recruit page immediately
+    router.replace('/recruit');
   }, [router]);
+
+  // Show loading while redirecting
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center space-y-4">
+        <div className="flex items-center justify-center">
+          <div className="bg-gradient-to-br from-purple-600 to-pink-600 p-4 rounded-2xl shadow-lg animate-pulse">
+            <Sparkles className="h-12 w-12 text-white" />
+          </div>
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900">Redirecting to BestHire...</h2>
+        <p className="text-gray-600">Please wait</p>
+      </div>
+    </div>
+  );
+
   const features = [
     {
       icon: Upload,

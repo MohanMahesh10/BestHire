@@ -5,11 +5,11 @@
 ![BestHire Logo](https://img.shields.io/badge/BestHire-AI%20Recruitment-purple?style=for-the-badge)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
-![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-**Intelligent Resume Parsing • Smart Candidate Matching • Real-time Analytics**
+**Intelligent Resume Parsing • Google Gemini AI Integration • Real-time Suggestions**
 
-[Demo](#demo) • [Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation)
+[Live Demo](https://mohanmahesh10.github.io/BestHire/) • [Features](#features) • [Quick Start](#quick-start) • [API Setup](#google-gemini-api-setup)
 
 </div>
 
@@ -17,16 +17,17 @@
 
 ## 📋 Overview
 
-BestHire is an enterprise-grade AI recruitment platform that revolutionizes the hiring process through intelligent resume parsing, semantic candidate matching, and comprehensive analytics. Built with cutting-edge machine learning algorithms and optimized for performance, BestHire processes thousands of resumes in seconds while maintaining exceptional accuracy.
+BestHire is a streamlined AI recruitment platform that simplifies the hiring process with intelligent resume parsing and AI-powered suggestions. Upload resumes, paste job descriptions, and get instant AI-generated hiring recommendations powered by Google Gemini API.
 
 ### Key Highlights
 
-- 🚀 **Lightning Fast** - Process resumes in < 1 second with O(n) complexity
-- 🤖 **AI-Powered** - Advanced NLP and TF-IDF embeddings for accurate matching
-- 🔒 **Privacy First** - 100% local processing, your data never leaves your machine
-- 📊 **Comprehensive Analytics** - Real-time insights and recruitment metrics
-- 🎨 **Modern UI** - Professional, responsive design for all devices
-- ⚡ **Zero Backend** - Runs entirely in the browser using localStorage
+- 🚀 **Lightning Fast** - Process PDF resumes instantly with custom binary parser
+- 🤖 **AI-Powered** - Google Gemini 2.0 Flash integration for intelligent suggestions
+- 🔒 **Privacy First** - API key stored securely in browser, no backend required
+- � **Smart Suggestions** - Get actionable hiring recommendations with AI analysis
+- 🎨 **Modern UI** - Clean, responsive design with Framer Motion animations
+- ⚡ **Zero Backend** - Runs entirely in the browser with localStorage
+- 🔄 **ML Fallback** - Built-in NLP parser when API key is not provided
 
 ---
 
@@ -34,47 +35,43 @@ BestHire is an enterprise-grade AI recruitment platform that revolutionizes the 
 
 ### 🔍 Intelligent Resume Parsing
 
-- **Multi-format Support**: Parse PDF, DOCX, and TXT files seamlessly
-- **Smart Extraction**: Automatically identify names, emails, phone numbers, skills, education, and experience
-- **NLP Processing**: Advanced natural language processing for accurate data extraction
-- **Batch Processing**: Handle multiple resumes simultaneously
+- **PDF Support**: Custom binary PDF parser with dual extraction methods
+- **Smart Extraction**: Automatically identify names, emails, phone numbers, and skills
+- **Advanced Text Processing**: Handles parentheses patterns, TJ/Tj operators, escape sequences
+- **Deduplication**: Smart text cleanup to avoid repeated content
+- **Validation**: Filters invalid names, headers, and page numbers
 
-### 🎯 Smart Candidate Matching
+### 🤖 Google Gemini AI Integration
 
-- **Semantic Matching**: 256-dimensional embeddings for precise candidate-job matching
-- **Cosine Similarity**: Advanced vector comparison for relevance scoring
-- **Skill-based Ranking**: Intelligent ranking based on required skills and qualifications
-- **Real-time Results**: Instant match scores with detailed breakdowns
+- **API Key Configuration**: Secure in-browser API key storage with validation
+- **Real-time Verification**: Tests API key with actual Google Gemini API call
+- **Multi-model Fallback**: Tries gemini-2.0-flash-exp then gemini-1.5-flash
+- **Status Indicators**: Visual feedback (Valid/Invalid/Testing/Untested)
+- **Detailed Suggestions**: Get 5-8 actionable hiring recommendations powered by AI
 
-### 😊 Sentiment Analysis
+### �️ Dual Processing Modes
 
-- **Professionalism Scoring**: Analyze candidate presentation and communication style
-- **Keyword Detection**: Identify positive and professional language patterns
-- **Confidence Metrics**: Quantitative sentiment scores (0-100%)
+#### Google Gemini AI Mode (Recommended)
+- ✅ 95%+ accuracy with advanced AI reasoning
+- ✅ Context-aware suggestions
+- ✅ Free tier: 15 requests/minute
+- ✅ Secure browser-based API calls
+- ⚠️ Requires API key from Google AI Studio
 
-### 📊 Analytics Dashboard
-
-- **Recruitment Metrics**: Track candidates processed, average match scores, and trends
-- **Visual Charts**: Interactive charts using Recharts for data visualization
-- **Top Skills Analysis**: Identify most common skills across candidates
-- **Sentiment Distribution**: Analyze overall candidate quality
-
-### 🛠️ Dual Processing Modes
-
-#### Local ML Mode (Recommended)
+#### Local ML Mode (Fallback)
 - ✅ 100% Free forever
 - ✅ No API key required
 - ✅ Works offline
 - ✅ Privacy-focused
-- ✅ Fast processing
-- ✅ 90%+ accuracy
+- ✅ Built-in NLP with compromise.js
+- ⚠️ Basic suggestions only
 
-#### Gemini AI API Mode (Optional)
-- ✅ 95%+ accuracy
-- ✅ Enhanced context understanding
-- ✅ Free tier available
-- ⚠️ Requires API key
-- ⚠️ Internet connection needed
+### 💼 Streamlined Workflow
+
+1. **Upload Resume** - Drag & drop or select PDF file
+2. **Paste Job Description** - Copy/paste the JD you're hiring for
+3. **Configure API** (optional) - Enter Google Gemini API key for AI suggestions
+4. **Get Suggestions** - Instant AI-powered hiring recommendations
 
 ---
 
@@ -85,13 +82,14 @@ BestHire is an enterprise-grade AI recruitment platform that revolutionizes the 
 - **Node.js** 18.0 or higher
 - **npm** or **yarn**
 - Modern web browser (Chrome, Firefox, Safari, Edge)
+- (Optional) Google Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/besthire.git
-cd besthire
+git clone https://github.com/MohanMahesh10/BestHire.git
+cd BestHire
 
 # Install dependencies
 npm install
@@ -100,40 +98,58 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+The app will open at `http://localhost:3000/BestHire/` (or port 3001 if 3000 is in use).
 
-### First-Time Setup
+### Google Gemini API Setup
 
-1. **Choose Processing Mode** - Select Local ML (instant) or Gemini API (requires key)
-2. **Upload Resumes** - Drag & drop or select PDF/DOCX/TXT files
-3. **Match Candidates** - Enter job description and get ranked results
-4. **View Analytics** - Track recruitment metrics and insights
+1. Get your API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. In the app, paste your API key in the "Google Gemini API Key" field
+3. Click "Test API Key" to verify it works
+4. Once validated, you'll see a green "Valid" status
+5. Your key is stored securely in browser localStorage
+
+**Note**: The app works without an API key using the built-in ML parser, but AI suggestions won't be available.
+
+### Deployment
+
+The project is automatically deployed to GitHub Pages on every push to main branch.
+
+**Live URL**: [https://mohanmahesh10.github.io/BestHire/](https://mohanmahesh10.github.io/BestHire/)
+
+To deploy manually:
+```bash
+npm run build
+npm run deploy
+```
 
 ---
 
 ## 📁 Project Structure
 
 ```
-besthire/
+BestHire/
 ├── src/
 │   ├── app/                    # Next.js app directory
-│   │   ├── dashboard/         # Analytics dashboard
-│   │   ├── match/            # Candidate matching
-│   │   ├── setup/            # Initial configuration
-│   │   ├── upload/           # Resume upload
-│   │   └── layout.tsx        # Root layout
-│   ├── components/           # Reusable UI components
-│   ├── lib/                  # Core libraries
-│   │   ├── gemini.ts        # Gemini API integration
-│   │   ├── ml-parser.ts     # Local ML processing
-│   │   ├── metrics.ts       # Candidate metrics
-│   │   ├── parsers.ts       # File parsing
-│   │   ├── storage.ts       # Local storage
-│   │   └── utils.ts         # Utility functions
-│   └── types/               # TypeScript definitions
-├── public/                   # Static assets
-├── package.json             # Dependencies
-└── README.md               # Documentation
+│   │   ├── recruit/           # Main recruitment workflow page
+│   │   ├── api/               # API routes (health, pdf parsing)
+│   │   └── layout.tsx         # Root layout
+│   ├── components/            # Reusable UI components
+│   │   ├── Button.tsx
+│   │   ├── Card.tsx
+│   │   ├── Navigation.tsx
+│   │   └── Progress.tsx
+│   ├── lib/                   # Core libraries
+│   │   ├── gemini.ts          # Gemini API integration
+│   │   ├── ml-parser.ts       # Local ML/NLP processing
+│   │   ├── parsers.ts         # PDF/DOCX parsing
+│   │   └── utils.ts           # Utility functions
+│   └── types/                 # TypeScript definitions
+├── .github/
+│   └── workflows/
+│       └── deploy.yml         # GitHub Pages deployment
+├── public/                    # Static assets
+├── package.json               # Dependencies
+└── README.md                  # Documentation
 ```
 
 ---
@@ -141,27 +157,30 @@ besthire/
 ## 💻 Tech Stack
 
 ### Frontend
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 14.0.3 (App Router, Static Export)
 - **Language**: TypeScript 5.0
 - **Styling**: Tailwind CSS
-- **UI Components**: Radix UI + shadcn/ui
+- **UI Components**: Radix UI (Dialog, Progress, Toast)
 - **Animations**: Framer Motion
-- **Charts**: Recharts
+- **Icons**: Lucide React
 
-### Machine Learning
-- **NLP**: compromise.js
-- **Embeddings**: Custom TF-IDF (256-dimensional)
-- **Similarity**: Cosine similarity
-- **AI (Optional)**: Google Gemini API
+### AI & Machine Learning
+- **Primary**: Google Gemini API (@google/genai v0.2.0)
+  - Models: gemini-2.0-flash-exp, gemini-1.5-flash
+- **Fallback**: compromise.js (NLP)
+- **Embeddings**: Custom TF-IDF implementation
 
 ### File Processing
-- **PDF**: pdf2json
+- **PDF**: Custom binary parser (no external libraries)
+  - Supports TJ/Tj operators, escape sequences
+  - Latin-1 encoding with deduplication
 - **DOCX**: mammoth
-- **TXT**: Native text parsing
+- **Validation**: Name filtering, header removal
 
-### Data Storage
-- **Client-side**: localStorage
-- **No backend required**
+### Data & Storage
+- **Client-side**: localStorage (API keys, preferences)
+- **No backend**: 100% browser-based
+- **Deployment**: GitHub Pages with automated workflow
 
 ---
 
@@ -170,24 +189,30 @@ besthire/
 | Metric | Performance |
 |--------|------------|
 | **Resume Parsing** | < 1 second |
-| **Candidate Matching** | < 2 seconds |
-| **UI Animations** | 200ms |
-| **Algorithm Complexity** | O(n) |
-| **Bundle Size** | Optimized |
-| **Lighthouse Score** | 95+ |
+| **API Response** | 2-5 seconds (Gemini AI) |
+| **ML Fallback** | < 1 second (offline) |
+| **UI Animations** | 60 FPS |
+| **Static Export** | Optimized for CDN |
 
 ---
 
-## 🎨 Screenshots
+## 🔧 Configuration
 
-### Dashboard
-![Dashboard](docs/screenshots/dashboard.png)
+### Environment Variables
 
-### Candidate Matching
-![Matching](docs/screenshots/matching.png)
+Create `.env.local` (optional - API key can be entered in UI):
+```bash
+NEXT_PUBLIC_GEMINI_API_KEY=your_api_key_here
+```
 
-### Resume Parsing
-![Upload](docs/screenshots/upload.png)
+### next.config.js
+```javascript
+{
+  output: 'export',
+  basePath: '/BestHire',
+  images: { unoptimized: true }
+}
+```
 
 ---
 
@@ -276,118 +301,122 @@ npm run build
 npm start
 ```
 
-### Deploy to Vercel (Recommended)
+---
+
+## 🚀 GitHub Pages Deployment
+
+### Automatic Deployment (Configured)
+
+The repository includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) that automatically:
+
+1. **Triggers** on every push to `main` branch
+2. **Builds** the Next.js app with static export
+3. **Deploys** to GitHub Pages at `https://mohanmahesh10.github.io/BestHire/`
+
+### Manual Deployment
 
 ```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel
-```
-
-### Deploy to GitHub Pages
-
-```bash
-# Build static export
+# Build and deploy manually
 npm run build
-npm run export
-
-# Deploy to gh-pages branch
 npm run deploy
 ```
 
-### Deploy to Netlify
+### Setup GitHub Pages
 
-1. Connect your GitHub repository
-2. Set build command: `npm run build`
-3. Set publish directory: `.next`
-4. Deploy!
+1. **Enable Pages**:
+   - Go to Repository Settings → Pages
+   - Source: Deploy from a branch
+   - Branch: `gh-pages` / `root`
+
+2. **Configure Workflow Permissions**:
+   - Settings → Actions → General
+   - Workflow permissions: **Read and write permissions**
+   - Check ✅ "Allow GitHub Actions to create and approve pull requests"
+
+3. **Push to Deploy**:
+   ```bash
+   git add .
+   git commit -m "Update deployment"
+   git push origin main
+   ```
 
 ---
 
-## 🧪 Testing
+## 🧪 Development & Testing
 
 ```bash
 # Run linter
 npm run lint
 
-# Type check
-npm run type-check
+# Start development server
+npm run dev
 
-# Run tests (if configured)
-npm test
+# Build production
+npm run build
 ```
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ---
 
 ## 📝 License
 
-**Proprietary Software**
+**MIT License**
 
-© 2025 BestHire. Developed by **MOHAN MAHESH**. All rights reserved.
+© 2025 BestHire. Developed by **MOHAN MAHESH**.
 
-This software is proprietary and confidential. Unauthorized copying, distribution, or use of this software, via any medium, is strictly prohibited.
-
-For licensing inquiries, contact: [your-email@example.com]
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software.
 
 ---
 
-## 🆘 Support
+## 🆘 Support & FAQ
 
 ### Getting Help
 
-- 📧 **Email**: support@besthire.com
-- 💬 **Discord**: [Join our community](#)
-- 📚 **Documentation**: [docs.besthire.com](#)
-- 🐛 **Issues**: [GitHub Issues](https://github.com/yourusername/besthire/issues)
+- � **Issues**: [GitHub Issues](https://github.com/MohanMahesh10/BestHire/issues)
+- � **Contact**: Create an issue for support
+- 📚 **Documentation**: Check README and inline code comments
 
 ### FAQ
 
 **Q: Do I need an API key to use BestHire?**  
-A: No! Local ML mode works without any API key. Gemini API is optional for enhanced features.
+A: No! The app works without an API key using built-in ML parser. Gemini API is optional for AI-powered suggestions.
 
 **Q: Is my data secure?**  
-A: Yes! All processing happens locally in your browser. Your data never leaves your machine.
-
-**Q: Can I use this commercially?**  
-A: Please contact us for commercial licensing options.
+A: Yes! All processing happens locally in your browser. API key (if provided) is stored in browser localStorage and never sent to any server except Google's API.
 
 **Q: What file formats are supported?**  
-A: PDF, DOCX, and TXT files are fully supported.
+A: Currently PDF files are fully supported with custom binary parser. DOCX support is included but may need testing.
+
+**Q: How do I get a Gemini API key?**  
+A: Visit [Google AI Studio](https://aistudio.google.com/app/apikey), sign in with Google account, and create a free API key.
+
+**Q: What's the API rate limit?**  
+A: Free tier: 15 requests/minute, 1500/day. Check [Google AI pricing](https://ai.google.dev/pricing) for details.
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] Multi-language support
-- [ ] Advanced analytics with ML insights
-- [ ] Resume template suggestions
-- [ ] Interview scheduling integration
-- [ ] Chrome extension
-- [ ] Mobile app (React Native)
-- [ ] API for third-party integrations
+- [x] PDF resume parsing with custom parser
+- [x] Google Gemini AI integration
+- [x] API key validation and testing
+- [x] ML fallback mode
+- [x] GitHub Pages deployment
+- [ ] LinkedIn/GitHub URL extraction
+- [ ] Multiple resume batch processing
+- [ ] Export suggestions to PDF
+- [ ] Interview question generation
+- [ ] Dark mode theme
 
 ---
 
 ## 🙏 Acknowledgments
 
 - **Next.js** - The React Framework
-- **Vercel** - Hosting and deployment
+- **Google Gemini** - AI-powered suggestions
+- **compromise** - Natural language processing
+- **Radix UI** - Accessible component primitives
+- **Tailwind CSS** - Utility-first styling
+- **Framer Motion** - Animation library
 - **Tailwind CSS** - Utility-first CSS framework
 - **shadcn/ui** - Beautiful UI components
 - **Google Gemini** - AI capabilities

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>BestHire - Redirecting...</title>
+    <script>
+        // Single Page Apps for GitHub Pages
+        // https://github.com/rafgraph/spa-github-pages
+        (function() {
+            // This checks if we're in a GitHub Pages environment and
+            // redirects to the correct base path if needed
+            if (window.location.hostname.includes('github.io')) {
+                // Get the current path
+                var path = window.location.pathname;
+
+                // If the path doesn't start with /BestHire, redirect
+                if (!path.startsWith('/BestHire/')) {
+                    window.location.replace('/BestHire/' + path.replace(/^\//, ''));
+                } else {
+                    // If we're at the root of BestHire, redirect to the index page
+                    if (path === '/BestHire/' || path === '/BestHire') {
+                        window.location.replace('/BestHire/index.html');
+                    }
+                }
+            }
+        })();
+    </script>
+    <meta http-equiv="refresh" content="0;url=/BestHire/">
+</head>
+
+<body>
+    <p>Redirecting to <a href="/BestHire/">BestHire application</a>...</p>
+</body>
+
+</html>
