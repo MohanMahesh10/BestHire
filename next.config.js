@@ -4,8 +4,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  basePath: process.env.NODE_ENV === 'production' ? '/BestHire' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/BestHire/' : '',
+  basePath: '/BestHire',
+  assetPrefix: '/BestHire/',
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
