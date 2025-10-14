@@ -53,33 +53,18 @@ export function parseResumeWithML(text: string) {
     return true;
   };
   
-  console.log('=== NAME EXTRACTION DEBUG ===');
-  console.log('Total lines:', lines.length);
-  console.log('First 15 lines:', lines.slice(0, 15));
-  console.log('Clean text preview:', cleanText.substring(0, 300));
-  
   // Strategy 1: First few lines looking for proper name pattern
   for (let i = 0; i < Math.min(15, lines.length); i++) {
     const line = lines[i].trim();
-    console.log(`Line ${i}: "${line}"`);
     
     // Skip empty lines
-    if (!line || line.length < 3) {
-      console.log('  -> Skipped (empty or too short)');
-      continue;
-    }
+    if (!line || line.length < 3) continue;
     
     // Skip lines with email or phone
-    if (line.includes('@') || /\d{3,}/.test(line)) {
-      console.log('  -> Skipped (contains @ or multiple digits)');
-      continue;
-    }
+    if (line.includes('@') || /\d{3,}/.test(line)) continue;
     
     // Skip common headers
-    if (/^(resume|cv|curriculum|contact|profile|summary|objective|experience|education|skills)/i.test(line)) {
-      console.log('  -> Skipped (common header)');
-      continue;
-    }
+    if (/^(resume|cv|curriculum|contact|profile|summary|objective|experience|education|skills)/i.test(line)) continue;
     
     // Look for name patterns with more flexibility
     // Pattern 1: Standard "FirstName LastName" format
@@ -91,21 +76,11 @@ export function parseResumeWithML(text: string) {
     
     const nameMatch = namePattern1 || namePattern2 || (namePattern3 ? [namePattern3[0], namePattern3[1].split(' ').map((n: string) => n.charAt(0) + n.slice(1).toLowerCase()).join(' ')] : null);
     
-    if (nameMatch) {
-      console.log(`  -> Name pattern matched: "${nameMatch[1]}"`);
-      if (isValidName(nameMatch[1])) {
-        name = nameMatch[1];
-        console.log(`  -> ✓ Valid name found: "${name}"`);
-        break;
-      } else {
-        console.log(`  -> × Invalid name (failed validation)`);
-      }
-    } else {
-      console.log('  -> No name pattern match');
+    if (nameMatch && isValidName(nameMatch[1])) {
+      name = nameMatch[1];
+      break;
     }
   }
-  
-  console.log('Strategy 1 result:', name);
   
   // Strategy 2: Use NLP to find person names if strategy 1 failed
   if (name === 'Unknown') {
@@ -151,8 +126,6 @@ export function parseResumeWithML(text: string) {
       }
     }
   }
-  
-  console.log('Phone extraction - Found:', phone);
   
   // Enhanced skills extraction with comprehensive list and variations
   const skillsDatabase = {

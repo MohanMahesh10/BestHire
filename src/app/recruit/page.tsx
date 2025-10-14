@@ -347,143 +347,128 @@ export default function RecruitPage() {
       reader.onload = async (e) => {
         try {
           const arrayBuffer = e.target?.result as ArrayBuffer;
-          const uint8Array = new Uint8Array(arrayBuffer);
+          const bytes = new Uint8Array(arrayBuffer);
           
-          // Convert to string for text extraction
-          let pdfText = '';
-          for (let i = 0; i < uint8Array.length; i++) {
-            pdfText += String.fromCharCode(uint8Array[i]);
+          // Convert to Latin-1 string (preserves byte values)
+          let pdfContent = '';
+          for (let i = 0; i < bytes.length; i++) {
+            pdfContent += String.fromCharCode(bytes[i]);
           }
           
-          // Extract text using multiple methods
-          const extractedLines: string[] = [];
-          const seenTexts = new Set<string>();
+          // Extract all text content from PDF stream objects
+          const textChunks: string[] = [];
+          const seenText = new Set<string>();
           
-          // Method 1: Extract text between parentheses (most reliable for PDFs)
-          const textInParentheses = /\(([^)]+)\)/g;
-          let match;
+          // Method 1: Extract from text showing operators (Tj, TJ, ')
+          // These are the most reliable for getting actual displayed text
+          const patterns = [
+            /\(([^)\\]*(?:\\.[^)\\]*)*)\)\s*Tj/g,  // (text)Tj
+            /\[([^\]]*)\]\s*TJ/g,                   // [(text)]TJ arrays
+            /<([0-9A-Fa-f\s]+)>\s*Tj/g,            // <hex>Tj
+          ];
           
-          while ((match = textInParentheses.exec(pdfText)) !== null) {
-            let text = match[1];
-            
-            // Decode PDF escape sequences
-            text = text
-              .replace(/\\n/g, '\n')
-              .replace(/\\r/g, ' ')
-              .replace(/\\t/g, ' ')
-              .replace(/\\b/g, '')
-              .replace(/\\f/g, '\n')
-              .replace(/\\\(/g, '(')
-              .replace(/\\\)/g, ')')
-              .replace(/\\\\/g, '\\')
-              .replace(/\\(\d{3})/g, (_: string, oct: string) => {
-                try {
-                  return String.fromCharCode(parseInt(oct, 8));
-                } catch {
-                  return '';
+          for (const pattern of patterns) {
+            let match;
+            while ((match = pattern.exec(pdfContent)) !== null) {
+              let text = match[1];
+              
+              // Decode PDF string escapes
+              text = text
+                .replace(/\\n/g, '\n')
+                .replace(/\\r/g, '\n')
+                .replace(/\\t/g, '\t')
+                .replace(/\\b/g, '\b')
+                .replace(/\\f/g, '\f')
+                .replace(/\\\(/g, '(')
+                .replace(/\\\)/g, ')')
+                .replace(/\\\\/g, '\\')
+                .replace(/\\(\d{1,3})/g, (_, oct) => String.fromCharCode(parseInt(oct, 8)))
+                .replace(/\\x([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+              
+              // Extract text from array notation [(text) num (text)]
+              if (text.includes('(')) {
+                const arrayMatches = text.matchAll(/\(([^)\\]*(?:\\.[^)\\]*)*)\)/g);
+                for (const arrayMatch of arrayMatches) {
+                  let chunk = arrayMatch[1].trim();
+                  if (chunk.length > 0 && /[a-zA-Z0-9@.]/.test(chunk) && !seenText.has(chunk)) {
+                    seenText.add(chunk);
+                    textChunks.push(chunk);
+                  }
                 }
-              });
-            
-            // Clean up the text
-            text = text
-              .replace(/[\x00-\x1F\x7F]/g, '') // Remove control characters
-              .trim();
-            
-            // Only keep meaningful text (has letters, numbers, or email/phone patterns)
-            if (text.length > 0 && /[a-zA-Z0-9@.]/.test(text) && !seenTexts.has(text)) {
-              seenTexts.add(text);
-              extractedLines.push(text);
-            }
-          }
-          
-          // Method 2: Extract text from TJ/Tj operators (array and string text)
-          const tjOperators = /\[([^\]]+)\]\s*TJ|\(([^)]+)\)\s*Tj/g;
-          while ((match = tjOperators.exec(pdfText)) !== null) {
-            const content = match[1] || match[2];
-            if (!content) continue;
-            
-            // Extract text from array format [(...) (...) ...]
-            const arrayTexts = content.match(/\(([^)]+)\)/g);
-            if (arrayTexts) {
-              arrayTexts.forEach(t => {
-                let text = t.replace(/[()]/g, '').trim();
-                if (text.length > 0 && /[a-zA-Z0-9@.]/.test(text) && !seenTexts.has(text)) {
-                  seenTexts.add(text);
-                  extractedLines.push(text);
-                }
-              });
-            }
-          }
-          
-          // Combine extracted text preserving some structure
-          // Try to detect line breaks by looking for patterns
-          let finalText = '';
-          for (let i = 0; i < extractedLines.length; i++) {
-            const current = extractedLines[i];
-            const next = extractedLines[i + 1];
-            
-            finalText += current;
-            
-            // Add line break if:
-            // 1. Current line looks complete (ends with period, or is email, or is phone)
-            // 2. Next line starts with capital letter (new sentence/section)
-            // 3. Current is a name-like pattern followed by different content
-            if (next) {
-              if (
-                /[.!?]$/.test(current) || // Ends with punctuation
-                /@/.test(current) || // Is email
-                /\d{10}/.test(current) || // Is phone
-                (/^[A-Z][a-z]+(\s+[A-Z][a-z]+)*$/.test(current) && /^[A-Z]/.test(next) && current.length < 30) || // Name-like followed by capital
-                (/^(RESUME|CV|PROFILE|CONTACT|EMAIL|PHONE|EDUCATION|EXPERIENCE|SKILLS)/i.test(next)) // Next is a header
-              ) {
-                finalText += '\n';
               } else {
-                finalText += ' ';
+                // Direct text
+                text = text.trim();
+                if (text.length > 0 && /[a-zA-Z0-9@.]/.test(text) && !seenText.has(text)) {
+                  seenText.add(text);
+                  textChunks.push(text);
+                }
               }
             }
           }
           
-          // Clean up the final text
-          finalText = finalText
-            .replace(/\n{3,}/g, '\n\n') // Max 2 consecutive newlines
-            .replace(/[ \t]+/g, ' ') // Normalize spaces but keep newlines
-            .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between camelCase
-            .replace(/([a-zA-Z])(\d)/g, '$1 $2') // Add space between letter and number
-            .replace(/(\d)([a-zA-Z])/g, '$1 $2') // Add space between number and letter
+          // Method 2: Try BT/ET (BeginText/EndText) blocks
+          const textBlocks = pdfContent.match(/BT\s+(.*?)\s+ET/gs);
+          if (textBlocks) {
+            for (const block of textBlocks) {
+              const textMatches = block.matchAll(/\(([^)\\]*(?:\\.[^)\\]*)*)\)/g);
+              for (const match of textMatches) {
+                let text = match[1].trim();
+                if (text.length > 0 && /[a-zA-Z0-9@.]/.test(text) && !seenText.has(text)) {
+                  seenText.add(text);
+                  textChunks.push(text);
+                }
+              }
+            }
+          }
+          
+          console.log('Extracted', textChunks.length, 'text chunks from PDF');
+          
+          // Reconstruct text with intelligent line breaks
+          let result = '';
+          for (let i = 0; i < textChunks.length; i++) {
+            const current = textChunks[i];
+            const next = textChunks[i + 1];
+            
+            result += current;
+            
+            if (next) {
+              // Add newline if current looks like end of line
+              if (
+                /@/.test(current) || // Email
+                /^\d{10,}$/.test(current) || // Phone number
+                /[.!?]$/.test(current) || // Sentence end
+                (/^[A-Z][a-z]+(\s[A-Z][a-z]+)*$/.test(current) && current.length < 40 && /^[A-Z]/.test(next)) || // Name-like
+                /^(RESUME|CV|PROFILE|SUMMARY|OBJECTIVE|EXPERIENCE|EDUCATION|SKILLS|CONTACT|PROJECTS)/i.test(next) // Section header
+              ) {
+                result += '\n';
+              } else {
+                result += ' ';
+              }
+            }
+          }
+          
+          // Final cleanup
+          result = result
+            .replace(/\s{2,}/g, ' ')
+            .replace(/\n{3,}/g, '\n\n')
+            .replace(/([a-z])([A-Z])/g, '$1 $2')
             .trim();
           
-          console.log('Extracted PDF text length:', finalText.length);
-          console.log('First 500 chars:', finalText.substring(0, 500));
-          console.log('Lines detected:', finalText.split('\n').length);
+          console.log('Final extracted text length:', result.length);
+          console.log('First 300 chars:', result.substring(0, 300));
           
-          if (finalText.length > 50) {
-            resolve(finalText);
+          if (result.length > 50) {
+            resolve(result);
           } else {
-            // Last resort: try to extract any readable ASCII text
-            const asciiText = Array.from(uint8Array)
-              .map(b => (b >= 32 && b <= 126) ? String.fromCharCode(b) : ' ')
-              .join('')
-              .replace(/\s+/g, ' ')
-              .trim();
-            
-            if (asciiText.length > 100) {
-              console.log('Using ASCII fallback extraction');
-              resolve(asciiText);
-            } else {
-              reject(new Error('Could not extract readable text from PDF. The PDF may be a scanned image or encrypted. Please try a different PDF with selectable text.'));
-            }
+            reject(new Error('Could not extract readable text from PDF. Please ensure the PDF contains selectable text (not a scanned image).'));
           }
         } catch (err) {
           console.error('PDF parsing error:', err);
-          reject(new Error('Failed to parse PDF file. Please try a different PDF.'));
+          reject(new Error('Failed to parse PDF. Please try a different file.'));
         }
       };
       reader.onerror = () => reject(new Error('Failed to read file'));
-      if (pdfFile) {
-        reader.readAsArrayBuffer(pdfFile);
-      } else {
-        reject(new Error('No file provided'));
-      }
+      reader.readAsArrayBuffer(pdfFile);
     });
   };
 
@@ -504,23 +489,8 @@ export default function RecruitPage() {
         throw new Error('Could not extract enough text from resume');
       }
       
-      // DEBUG: Log extracted text
-      console.log('=== EXTRACTED PDF TEXT ===');
-      console.log('Length:', resumeText.length);
-      console.log('First 500 chars:', resumeText.substring(0, 500));
-      console.log('All text:', resumeText);
-      console.log('=== END EXTRACTED TEXT ===');
-      
       // Step 2: Parse resume
       const parsed = parseResumeWithML(resumeText);
-      
-      // DEBUG: Log parsed results
-      console.log('=== PARSED RESULTS ===');
-      console.log('Name:', parsed.name);
-      console.log('Email:', parsed.email);
-      console.log('Phone:', parsed.phone);
-      console.log('Skills:', parsed.skills);
-      console.log('=== END PARSED RESULTS ===');
       
       setParsedResume({ ...parsed, rawText: resumeText });
       
@@ -820,68 +790,49 @@ export default function RecruitPage() {
 
             {/* Candidate Info */}
             {parsedResume && (
-              <>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>👤 Candidate Profile</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Name */}
-                    <div>
-                      <p className="text-sm font-semibold text-gray-500 mb-1">Name</p>
-                      <p className="text-xl font-bold text-gray-900">{parsedResume.name}</p>
+              <Card>
+                <CardHeader>
+                  <CardTitle>👤 Candidate Profile</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Name */}
+                  <div>
+                    <p className="text-sm font-semibold text-gray-500 mb-1">Name</p>
+                    <p className="text-xl font-bold text-gray-900">{parsedResume.name}</p>
+                  </div>
+                  
+                  {/* Contact Information */}
+                  <div>
+                    <p className="text-sm font-semibold text-gray-500 mb-2">Contact</p>
+                    <div className="space-y-1">
+                      {parsedResume.email && (
+                        <div className="flex items-center space-x-2">
+                          <span className="text-gray-600">📧</span>
+                          <p className="text-base text-gray-800 break-all">{parsedResume.email}</p>
+                        </div>
+                      )}
+                      {parsedResume.phone && (
+                        <div className="flex items-center space-x-2">
+                          <span className="text-gray-600">📱</span>
+                          <p className="text-base text-gray-800">{parsedResume.phone}</p>
+                        </div>
+                      )}
                     </div>
-                    
-                    {/* Contact Information */}
-                    <div>
-                      <p className="text-sm font-semibold text-gray-500 mb-2">Contact</p>
-                      <div className="space-y-1">
-                        {parsedResume.email && (
-                          <div className="flex items-center space-x-2">
-                            <span className="text-gray-600">📧</span>
-                            <p className="text-base text-gray-800 break-all">{parsedResume.email}</p>
-                          </div>
-                        )}
-                        {parsedResume.phone && (
-                          <div className="flex items-center space-x-2">
-                            <span className="text-gray-600">📱</span>
-                            <p className="text-base text-gray-800">{parsedResume.phone}</p>
-                          </div>
-                        )}
-                      </div>
+                  </div>
+                  
+                  {/* Skills */}
+                  <div>
+                    <p className="text-sm font-semibold text-gray-500 mb-2">Skills ({parsedResume.skills.length})</p>
+                    <div className="flex flex-wrap gap-2">
+                      {parsedResume.skills.slice(0, 12).map((skill) => (
+                        <span key={skill} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                          {skill}
+                        </span>
+                      ))}
                     </div>
-                    
-                    {/* Skills */}
-                    <div>
-                      <p className="text-sm font-semibold text-gray-500 mb-2">Skills ({parsedResume.skills.length})</p>
-                      <div className="flex flex-wrap gap-2">
-                        {parsedResume.skills.slice(0, 12).map((skill) => (
-                          <span key={skill} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Debug: Show Extracted Text */}
-                <Card className="border-yellow-300 bg-yellow-50">
-                  <CardHeader>
-                    <CardTitle className="text-yellow-900">🔍 Debug: Extracted PDF Text</CardTitle>
-                    <CardDescription>First 1000 characters from PDF (for debugging)</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="bg-white p-4 rounded border border-yellow-200 font-mono text-xs max-h-64 overflow-auto whitespace-pre-wrap break-words">
-                      {parsedResume.rawText.substring(0, 1000)}
-                      {parsedResume.rawText.length > 1000 && '\n\n... (text truncated)'}
-                    </div>
-                    <p className="mt-2 text-xs text-yellow-800">
-                      Total extracted text length: {parsedResume.rawText.length} characters
-                    </p>
-                  </CardContent>
-                </Card>
-              </>
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
             {/* Strengths & Weaknesses */}
