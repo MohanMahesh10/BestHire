@@ -387,8 +387,9 @@ export default function RecruitPage() {
               
               // Extract text from array notation [(text) num (text)]
               if (text.includes('(')) {
-                const arrayMatches = text.matchAll(/\(([^)\\]*(?:\\.[^)\\]*)*)\)/g);
-                for (const arrayMatch of arrayMatches) {
+                const arrayPattern = /\(([^)\\]*(?:\\.[^)\\]*)*)\)/g;
+                let arrayMatch;
+                while ((arrayMatch = arrayPattern.exec(text)) !== null) {
                   let chunk = arrayMatch[1].trim();
                   if (chunk.length > 0 && /[a-zA-Z0-9@.]/.test(chunk) && !seenText.has(chunk)) {
                     seenText.add(chunk);
@@ -407,12 +408,14 @@ export default function RecruitPage() {
           }
           
           // Method 2: Try BT/ET (BeginText/EndText) blocks
-          const textBlocks = pdfContent.match(/BT\s+(.*?)\s+ET/gs);
+          const btPattern = /BT[\s\S]+?ET/g;
+          const textBlocks = pdfContent.match(btPattern);
           if (textBlocks) {
             for (const block of textBlocks) {
-              const textMatches = block.matchAll(/\(([^)\\]*(?:\\.[^)\\]*)*)\)/g);
-              for (const match of textMatches) {
-                let text = match[1].trim();
+              const textPattern = /\(([^)\\]*(?:\\.[^)\\]*)*)\)/g;
+              let textMatch;
+              while ((textMatch = textPattern.exec(block)) !== null) {
+                let text = textMatch[1].trim();
                 if (text.length > 0 && /[a-zA-Z0-9@.]/.test(text) && !seenText.has(text)) {
                   seenText.add(text);
                   textChunks.push(text);
