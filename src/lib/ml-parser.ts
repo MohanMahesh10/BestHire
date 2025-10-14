@@ -2,14 +2,28 @@
 import nlp from 'compromise';
 
 export function parseResumeWithML(text: string) {
-  // Clean the text first
+  // Clean the text first - preserve newlines for better line detection
   const cleanText = text
-    .replace(/[^\x20-\x7E\n]/g, '') // Remove non-printable characters
-    .replace(/\s+/g, ' ')
+    .replace(/\r\n/g, '\n') // Normalize line endings
+    .replace(/\r/g, '\n')
+    .replace(/[^\x20-\x7E\n]/g, '') // Remove non-printable characters except newline
+    .replace(/ {2,}/g, ' ') // Replace multiple spaces with single space
     .trim();
   
   const doc = nlp(cleanText);
-  const lines = cleanText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  
+  // Split by actual newlines first, then by sentences if needed
+  let lines = cleanText.split('\n')
+    .map(l => l.trim())
+    .filter(l => l.length > 0);
+  
+  // If we don't have many lines, try to split by common patterns
+  if (lines.length < 5) {
+    lines = cleanText
+      .split(/(?<=[.!?])\s+|(?<=\))\s+(?=[A-Z])|(?<=[a-z])(?=[A-Z]{2,})/)
+      .map(l => l.trim())
+      .filter(l => l.length > 0);
+  }
   
   // Enhanced name extraction with multiple strategies
   let name = 'Unknown';
@@ -39,24 +53,59 @@ export function parseResumeWithML(text: string) {
     return true;
   };
   
+  console.log('=== NAME EXTRACTION DEBUG ===');
+  console.log('Total lines:', lines.length);
+  console.log('First 15 lines:', lines.slice(0, 15));
+  console.log('Clean text preview:', cleanText.substring(0, 300));
+  
   // Strategy 1: First few lines looking for proper name pattern
-  for (let i = 0; i < Math.min(10, lines.length); i++) {
+  for (let i = 0; i < Math.min(15, lines.length); i++) {
     const line = lines[i].trim();
+    console.log(`Line ${i}: "${line}"`);
     
     // Skip empty lines
-    if (!line) continue;
+    if (!line || line.length < 3) {
+      console.log('  -> Skipped (empty or too short)');
+      continue;
+    }
     
     // Skip lines with email or phone
-    if (line.includes('@') || /\d{3,}/.test(line)) continue;
+    if (line.includes('@') || /\d{3,}/.test(line)) {
+      console.log('  -> Skipped (contains @ or multiple digits)');
+      continue;
+    }
     
-    // Look for name patterns: "FirstName LastName" or "FirstName MiddleName LastName"
-    const nameMatch = line.match(/^([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z']+){1,2})$/);
+    // Skip common headers
+    if (/^(resume|cv|curriculum|contact|profile|summary|objective|experience|education|skills)/i.test(line)) {
+      console.log('  -> Skipped (common header)');
+      continue;
+    }
     
-    if (nameMatch && isValidName(nameMatch[1])) {
-      name = nameMatch[1];
-      break;
+    // Look for name patterns with more flexibility
+    // Pattern 1: Standard "FirstName LastName" format
+    const namePattern1 = line.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})$/);
+    // Pattern 2: With middle initial "FirstName M. LastName"
+    const namePattern2 = line.match(/^([A-Z][a-z]+(?:\s+[A-Z]\.)?(?:\s+[A-Z][a-z]+){1,2})$/);
+    // Pattern 3: All caps name "FIRSTNAME LASTNAME"
+    const namePattern3 = line.match(/^([A-Z]{2,}\s+[A-Z]{2,}(?:\s+[A-Z]{2,})?)$/);
+    
+    const nameMatch = namePattern1 || namePattern2 || (namePattern3 ? [namePattern3[0], namePattern3[1].split(' ').map((n: string) => n.charAt(0) + n.slice(1).toLowerCase()).join(' ')] : null);
+    
+    if (nameMatch) {
+      console.log(`  -> Name pattern matched: "${nameMatch[1]}"`);
+      if (isValidName(nameMatch[1])) {
+        name = nameMatch[1];
+        console.log(`  -> ✓ Valid name found: "${name}"`);
+        break;
+      } else {
+        console.log(`  -> × Invalid name (failed validation)`);
+      }
+    } else {
+      console.log('  -> No name pattern match');
     }
   }
+  
+  console.log('Strategy 1 result:', name);
   
   // Strategy 2: Use NLP to find person names if strategy 1 failed
   if (name === 'Unknown') {
@@ -84,20 +133,26 @@ export function parseResumeWithML(text: string) {
   
   // Enhanced phone extraction with multiple patterns
   const phonePatterns = [
-    /\+?\d{1,3}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g, // International
-    /\(\d{3}\)\s?\d{3}-?\d{4}/g, // (123) 456-7890
-    /\d{3}[-.\s]\d{3}[-.\s]\d{4}/g, // 123-456-7890
-    /\d{10}/g // 1234567890
+    /\+?\d{1,3}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g, // International with word boundary
+    /\(\d{3}\)\s?\d{3}[-.\s]?\d{4}\b/g, // (123) 456-7890
+    /\b\d{3}[-.\s]\d{3}[-.\s]\d{4}\b/g, // 123-456-7890
+    /\b\d{10}\b/g // 1234567890 (10 digits only)
   ];
   
   let phone = '';
   for (const pattern of phonePatterns) {
     const matches = text.match(pattern);
-    if (matches && matches[0].replace(/\D/g, '').length >= 10) {
-      phone = matches[0];
-      break;
+    if (matches && matches[0]) {
+      const digits = matches[0].replace(/\D/g, '');
+      // Only accept if it's exactly 10 digits (US format) or 11+ (international)
+      if (digits.length === 10 || digits.length >= 11) {
+        phone = matches[0];
+        break;
+      }
     }
   }
+  
+  console.log('Phone extraction - Found:', phone);
   
   // Enhanced skills extraction with comprehensive list and variations
   const skillsDatabase = {

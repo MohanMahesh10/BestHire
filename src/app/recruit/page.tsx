@@ -415,19 +415,46 @@ export default function RecruitPage() {
             }
           }
           
-          // Combine extracted text with proper spacing
-          let finalText = extractedLines.join(' ');
+          // Combine extracted text preserving some structure
+          // Try to detect line breaks by looking for patterns
+          let finalText = '';
+          for (let i = 0; i < extractedLines.length; i++) {
+            const current = extractedLines[i];
+            const next = extractedLines[i + 1];
+            
+            finalText += current;
+            
+            // Add line break if:
+            // 1. Current line looks complete (ends with period, or is email, or is phone)
+            // 2. Next line starts with capital letter (new sentence/section)
+            // 3. Current is a name-like pattern followed by different content
+            if (next) {
+              if (
+                /[.!?]$/.test(current) || // Ends with punctuation
+                /@/.test(current) || // Is email
+                /\d{10}/.test(current) || // Is phone
+                (/^[A-Z][a-z]+(\s+[A-Z][a-z]+)*$/.test(current) && /^[A-Z]/.test(next) && current.length < 30) || // Name-like followed by capital
+                (/^(RESUME|CV|PROFILE|CONTACT|EMAIL|PHONE|EDUCATION|EXPERIENCE|SKILLS)/i.test(next)) // Next is a header
+              ) {
+                finalText += '\n';
+              } else {
+                finalText += ' ';
+              }
+            }
+          }
           
           // Clean up the final text
           finalText = finalText
-            .replace(/\s+/g, ' ') // Normalize whitespace
+            .replace(/\n{3,}/g, '\n\n') // Max 2 consecutive newlines
+            .replace(/[ \t]+/g, ' ') // Normalize spaces but keep newlines
             .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between camelCase
             .replace(/([a-zA-Z])(\d)/g, '$1 $2') // Add space between letter and number
             .replace(/(\d)([a-zA-Z])/g, '$1 $2') // Add space between number and letter
             .trim();
           
           console.log('Extracted PDF text length:', finalText.length);
-          console.log('First 200 chars:', finalText.substring(0, 200));
+          console.log('First 500 chars:', finalText.substring(0, 500));
+          console.log('Lines detected:', finalText.split('\n').length);
           
           if (finalText.length > 50) {
             resolve(finalText);
@@ -477,8 +504,24 @@ export default function RecruitPage() {
         throw new Error('Could not extract enough text from resume');
       }
       
+      // DEBUG: Log extracted text
+      console.log('=== EXTRACTED PDF TEXT ===');
+      console.log('Length:', resumeText.length);
+      console.log('First 500 chars:', resumeText.substring(0, 500));
+      console.log('All text:', resumeText);
+      console.log('=== END EXTRACTED TEXT ===');
+      
       // Step 2: Parse resume
       const parsed = parseResumeWithML(resumeText);
+      
+      // DEBUG: Log parsed results
+      console.log('=== PARSED RESULTS ===');
+      console.log('Name:', parsed.name);
+      console.log('Email:', parsed.email);
+      console.log('Phone:', parsed.phone);
+      console.log('Skills:', parsed.skills);
+      console.log('=== END PARSED RESULTS ===');
+      
       setParsedResume({ ...parsed, rawText: resumeText });
       
       // Step 3: Calculate match score using embeddings
@@ -777,32 +820,68 @@ export default function RecruitPage() {
 
             {/* Candidate Info */}
             {parsedResume && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>👤 Candidate Profile</CardTitle>
-                </CardHeader>
-                <CardContent className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-500">Name</p>
-                    <p className="text-lg font-medium">{parsedResume.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-500">Contact</p>
-                    <p className="text-lg">{parsedResume.email}</p>
-                    {parsedResume.phone && <p className="text-sm text-gray-600">{parsedResume.phone}</p>}
-                  </div>
-                  <div className="md:col-span-2">
-                    <p className="text-sm font-semibold text-gray-500 mb-2">Skills ({parsedResume.skills.length})</p>
-                    <div className="flex flex-wrap gap-2">
-                      {parsedResume.skills.slice(0, 12).map((skill) => (
-                        <span key={skill} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                          {skill}
-                        </span>
-                      ))}
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>👤 Candidate Profile</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Name */}
+                    <div>
+                      <p className="text-sm font-semibold text-gray-500 mb-1">Name</p>
+                      <p className="text-xl font-bold text-gray-900">{parsedResume.name}</p>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                    
+                    {/* Contact Information */}
+                    <div>
+                      <p className="text-sm font-semibold text-gray-500 mb-2">Contact</p>
+                      <div className="space-y-1">
+                        {parsedResume.email && (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-gray-600">📧</span>
+                            <p className="text-base text-gray-800 break-all">{parsedResume.email}</p>
+                          </div>
+                        )}
+                        {parsedResume.phone && (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-gray-600">📱</span>
+                            <p className="text-base text-gray-800">{parsedResume.phone}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Skills */}
+                    <div>
+                      <p className="text-sm font-semibold text-gray-500 mb-2">Skills ({parsedResume.skills.length})</p>
+                      <div className="flex flex-wrap gap-2">
+                        {parsedResume.skills.slice(0, 12).map((skill) => (
+                          <span key={skill} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Debug: Show Extracted Text */}
+                <Card className="border-yellow-300 bg-yellow-50">
+                  <CardHeader>
+                    <CardTitle className="text-yellow-900">🔍 Debug: Extracted PDF Text</CardTitle>
+                    <CardDescription>First 1000 characters from PDF (for debugging)</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-white p-4 rounded border border-yellow-200 font-mono text-xs max-h-64 overflow-auto whitespace-pre-wrap break-words">
+                      {parsedResume.rawText.substring(0, 1000)}
+                      {parsedResume.rawText.length > 1000 && '\n\n... (text truncated)'}
+                    </div>
+                    <p className="mt-2 text-xs text-yellow-800">
+                      Total extracted text length: {parsedResume.rawText.length} characters
+                    </p>
+                  </CardContent>
+                </Card>
+              </>
             )}
 
             {/* Strengths & Weaknesses */}
