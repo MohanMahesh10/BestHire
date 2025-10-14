@@ -342,137 +342,69 @@ export default function RecruitPage() {
   };
 
   const extractTextFromPDF = async (pdfFile: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const arrayBuffer = e.target?.result as ArrayBuffer;
-          const bytes = new Uint8Array(arrayBuffer);
-          
-          // Convert to Latin-1 string (preserves byte values)
-          let pdfContent = '';
-          for (let i = 0; i < bytes.length; i++) {
-            pdfContent += String.fromCharCode(bytes[i]);
-          }
-          
-          // Extract all text content from PDF stream objects
-          const textChunks: string[] = [];
-          const seenText = new Set<string>();
-          
-          // Method 1: Extract from text showing operators (Tj, TJ, ')
-          // These are the most reliable for getting actual displayed text
-          const patterns = [
-            /\(([^)\\]*(?:\\.[^)\\]*)*)\)\s*Tj/g,  // (text)Tj
-            /\[([^\]]*)\]\s*TJ/g,                   // [(text)]TJ arrays
-            /<([0-9A-Fa-f\s]+)>\s*Tj/g,            // <hex>Tj
-          ];
-          
-          for (const pattern of patterns) {
-            let match;
-            while ((match = pattern.exec(pdfContent)) !== null) {
-              let text = match[1];
-              
-              // Decode PDF string escapes
-              text = text
-                .replace(/\\n/g, '\n')
-                .replace(/\\r/g, '\n')
-                .replace(/\\t/g, '\t')
-                .replace(/\\b/g, '\b')
-                .replace(/\\f/g, '\f')
-                .replace(/\\\(/g, '(')
-                .replace(/\\\)/g, ')')
-                .replace(/\\\\/g, '\\')
-                .replace(/\\(\d{1,3})/g, (_, oct) => String.fromCharCode(parseInt(oct, 8)))
-                .replace(/\\x([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
-              
-              // Extract text from array notation [(text) num (text)]
-              if (text.includes('(')) {
-                const arrayPattern = /\(([^)\\]*(?:\\.[^)\\]*)*)\)/g;
-                let arrayMatch;
-                while ((arrayMatch = arrayPattern.exec(text)) !== null) {
-                  let chunk = arrayMatch[1].trim();
-                  if (chunk.length > 0 && /[a-zA-Z0-9@.]/.test(chunk) && !seenText.has(chunk)) {
-                    seenText.add(chunk);
-                    textChunks.push(chunk);
-                  }
-                }
-              } else {
-                // Direct text
-                text = text.trim();
-                if (text.length > 0 && /[a-zA-Z0-9@.]/.test(text) && !seenText.has(text)) {
-                  seenText.add(text);
-                  textChunks.push(text);
-                }
-              }
+    try {
+      // Dynamically import pdfjs-dist for browser compatibility
+      const pdfjsLib = await import('pdfjs-dist');
+      
+      // Set worker path for PDF.js
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+      
+      // Read file as array buffer
+      const arrayBuffer = await pdfFile.arrayBuffer();
+      
+      // Load PDF document
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+      
+      console.log('PDF loaded, pages:', pdf.numPages);
+      
+      // Extract text from all pages
+      const textParts: string[] = [];
+      
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        
+        // Extract text items and preserve some structure
+        const pageText = textContent.items
+          .map((item: any) => {
+            if ('str' in item) {
+              return item.str;
             }
-          }
-          
-          // Method 2: Try BT/ET (BeginText/EndText) blocks
-          const btPattern = /BT[\s\S]+?ET/g;
-          const textBlocks = pdfContent.match(btPattern);
-          if (textBlocks) {
-            for (const block of textBlocks) {
-              const textPattern = /\(([^)\\]*(?:\\.[^)\\]*)*)\)/g;
-              let textMatch;
-              while ((textMatch = textPattern.exec(block)) !== null) {
-                let text = textMatch[1].trim();
-                if (text.length > 0 && /[a-zA-Z0-9@.]/.test(text) && !seenText.has(text)) {
-                  seenText.add(text);
-                  textChunks.push(text);
-                }
-              }
-            }
-          }
-          
-          console.log('Extracted', textChunks.length, 'text chunks from PDF');
-          
-          // Reconstruct text with intelligent line breaks
-          let result = '';
-          for (let i = 0; i < textChunks.length; i++) {
-            const current = textChunks[i];
-            const next = textChunks[i + 1];
-            
-            result += current;
-            
-            if (next) {
-              // Add newline if current looks like end of line
-              if (
-                /@/.test(current) || // Email
-                /^\d{10,}$/.test(current) || // Phone number
-                /[.!?]$/.test(current) || // Sentence end
-                (/^[A-Z][a-z]+(\s[A-Z][a-z]+)*$/.test(current) && current.length < 40 && /^[A-Z]/.test(next)) || // Name-like
-                /^(RESUME|CV|PROFILE|SUMMARY|OBJECTIVE|EXPERIENCE|EDUCATION|SKILLS|CONTACT|PROJECTS)/i.test(next) // Section header
-              ) {
-                result += '\n';
-              } else {
-                result += ' ';
-              }
-            }
-          }
-          
-          // Final cleanup
-          result = result
-            .replace(/\s{2,}/g, ' ')
-            .replace(/\n{3,}/g, '\n\n')
-            .replace(/([a-z])([A-Z])/g, '$1 $2')
-            .trim();
-          
-          console.log('Final extracted text length:', result.length);
-          console.log('First 300 chars:', result.substring(0, 300));
-          
-          if (result.length > 50) {
-            resolve(result);
-          } else {
-            reject(new Error('Could not extract readable text from PDF. Please ensure the PDF contains selectable text (not a scanned image).'));
-          }
-        } catch (err) {
-          console.error('PDF parsing error:', err);
-          reject(new Error('Failed to parse PDF. Please try a different file.'));
+            return '';
+          })
+          .filter((text: string) => text.trim().length > 0)
+          .join(' ');
+        
+        if (pageText.trim().length > 0) {
+          textParts.push(pageText);
         }
-      };
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsArrayBuffer(pdfFile);
-    });
+      }
+      
+      // Combine all pages
+      let fullText = textParts.join('\n\n');
+      
+      // Clean up the text
+      fullText = fullText
+        .replace(/\s+/g, ' ') // Normalize whitespace
+        .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between camelCase
+        .replace(/(\w)(@\w)/g, '$1 $2') // Space before email
+        .replace(/([a-zA-Z])(\d)/g, '$1 $2') // Space between letter and number
+        .replace(/(\d)([a-zA-Z])/g, '$1 $2') // Space between number and letter
+        .trim();
+      
+      console.log('Extracted text length:', fullText.length);
+      console.log('First 300 chars:', fullText.substring(0, 300));
+      
+      if (fullText.length > 50) {
+        return fullText;
+      } else {
+        throw new Error('Could not extract readable text from PDF. Please ensure the PDF contains selectable text (not a scanned image).');
+      }
+    } catch (err) {
+      console.error('PDF parsing error:', err);
+      throw new Error('Failed to parse PDF. Please ensure the PDF is not corrupted and contains selectable text.');
+    }
   };
 
   const handleMatch = async () => {
