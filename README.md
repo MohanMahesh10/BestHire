@@ -1,4 +1,6 @@
 # BestHire - AI-Powered Recruitment Platform
+<img width="1080" height="1080" alt="Best Hire" src="https://github.com/user-attachments/assets/48efe2dd-f63e-4e41-9a4c-f46641666ff3" />
+
 
 <div align="center">
 
