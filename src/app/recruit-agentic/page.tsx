@@ -101,44 +101,44 @@ export default function AgenticRecruitPage() {
   const isLoading = orchestratorState?.currentAgent && !orchestratorState?.completed;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="text-center mb-6 sm:mb-8"
         >
           <div className="flex items-center justify-center space-x-2 mb-2">
-            <Bot className="h-8 w-8 text-indigo-600" />
-            <h1 className="text-4xl font-bold text-gray-900">Agentic Recruitment</h1>
+            <Bot className="h-6 sm:h-8 w-6 sm:w-8 text-indigo-600" />
+            <h1 className="text-2xl sm:text-4xl font-bold text-gray-900">Agentic Recruitment</h1>
           </div>
-          <p className="text-lg text-gray-600">AI-powered multi-agent system for intelligent recruitment</p>
+          <p className="text-sm sm:text-lg text-gray-600 px-4">AI-powered multi-agent system for intelligent recruitment</p>
         </motion.div>
 
-        {/* Step-by-Step Instructions */}
-        <Card className="mb-6 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
-          <CardContent className="pt-6">
-            <div className="flex items-start space-x-4">
+        {/* Step-by-Step Instructions - Mobile Responsive */}
+        <Card className="mb-4 sm:mb-6 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
+          <CardContent className="pt-4 sm:pt-6 pb-4 sm:pb-6">
+            <div className="flex items-start space-x-3 sm:space-x-4">
               <div className="flex-shrink-0">
-                <Bot className="h-8 w-8 text-purple-600" />
+                <Bot className="h-6 sm:h-8 w-6 sm:w-8 text-purple-600" />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">How to Use Agentic Workflow</h3>
-                <ol className="space-y-2 text-sm text-gray-700">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">How to Use Agentic Workflow</h3>
+                <ol className="space-y-2 text-xs sm:text-sm text-gray-700">
                   <li className="flex items-start">
-                    <span className="font-bold text-purple-600 mr-2">1.</span>
+                    <span className="font-bold text-purple-600 mr-2 flex-shrink-0">1.</span>
                     <span>(Optional) Add your Gemini API key for AI-powered suggestions</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="font-bold text-purple-600 mr-2">2.</span>
+                    <span className="font-bold text-purple-600 mr-2 flex-shrink-0">2.</span>
                     <span>Upload a resume (PDF or DOCX format)</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="font-bold text-purple-600 mr-2">3.</span>
+                    <span className="font-bold text-purple-600 mr-2 flex-shrink-0">3.</span>
                     <span>Paste the job description you're hiring for</span>
                   </li>
                   <li className="flex items-start">
-                    <span className="font-bold text-purple-600 mr-2">4.</span>
+                    <span className="font-bold text-purple-600 mr-2 flex-shrink-0">4.</span>
                     <span>Click "Start Agentic Analysis" and watch the magic happen! ✨</span>
                   </li>
                 </ol>
@@ -147,13 +147,13 @@ export default function AgenticRecruitPage() {
           </CardContent>
         </Card>
 
-        {/* API Key Configuration */}
-        <Card className="mb-6 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="text-2xl">🔑</span>
-                <span>Gemini API Key</span>
+        {/* API Key Configuration - Mobile Responsive */}
+        <Card className="mb-4 sm:mb-6 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+              <div className="flex items-center space-x-2 flex-wrap">
+                <span className="text-xl sm:text-2xl">🔑</span>
+                <span className="text-base sm:text-lg">Gemini API Key</span>
                 <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold">
                   Optional
                 </span>
@@ -162,11 +162,12 @@ export default function AgenticRecruitPage() {
                 onClick={() => setShowApiKey(!showApiKey)}
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto"
               >
                 {showApiKey ? 'Hide' : 'Configure'}
               </Button>
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
               Add your Gemini API key for <strong>AI-powered suggestions</strong>. Leave empty for basic ML-based analysis.
             </CardDescription>
           </CardHeader>
@@ -181,16 +182,16 @@ export default function AgenticRecruitPage() {
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   placeholder="Enter your Gemini API key (starts with AIza...)"
-                  className="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm transition-all"
+                  className="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-xs sm:text-sm transition-all"
                 />
               </div>
               
-              <div className="flex items-center justify-between pt-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2">
                 <a
                   href="https://aistudio.google.com/app/apikey"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:text-blue-700 hover:underline font-medium"
+                  className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 hover:underline font-medium"
                 >
                   Get API Key from Google AI Studio →
                 </a>
@@ -206,7 +207,7 @@ export default function AgenticRecruitPage() {
                   variant="outline"
                   size="sm"
                   disabled={!apiKey.trim()}
-                  className="flex items-center space-x-2"
+                  className="flex items-center space-x-2 w-full sm:w-auto"
                 >
                   <CheckCircle className="h-4 w-4" />
                   <span>Test API Key</span>
@@ -223,8 +224,8 @@ export default function AgenticRecruitPage() {
           )}
         </Card>
 
-        {/* Input Section - Two Column Layout */}
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
+        {/* Input Section - Two Column Layout - Mobile Responsive */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
           {/* File Upload */}
           <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
             <CardHeader>
@@ -340,65 +341,65 @@ Example:
           <Card className="border-indigo-300 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50">
             <CardContent className="pt-6 pb-6">
               <div className="flex flex-col items-center space-y-4">
-                {/* Ready Status Indicators */}
-                <div className="flex items-center space-x-6 mb-2">
+                {/* Ready Status Indicators - Mobile Responsive */}
+                <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 mb-2 w-full justify-center">
                   <div className="flex items-center space-x-2">
                     {file ? (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
                     ) : (
-                      <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
+                      <div className="h-5 w-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
                     )}
-                    <span className={`text-sm font-medium ${file ? 'text-green-700' : 'text-gray-500'}`}>
+                    <span className={`text-sm font-medium whitespace-nowrap ${file ? 'text-green-700' : 'text-gray-500'}`}>
                       Resume
                     </span>
                   </div>
                   
                   <div className="flex items-center space-x-2">
                     {jobDescription.trim() ? (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
                     ) : (
-                      <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
+                      <div className="h-5 w-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
                     )}
-                    <span className={`text-sm font-medium ${jobDescription.trim() ? 'text-green-700' : 'text-gray-500'}`}>
+                    <span className={`text-sm font-medium whitespace-nowrap ${jobDescription.trim() ? 'text-green-700' : 'text-gray-500'}`}>
                       Job Description
                     </span>
                   </div>
                   
                   <div className="flex items-center space-x-2">
                     {apiKey.trim() ? (
-                      <CheckCircle className="h-5 w-5 text-blue-600" />
+                      <CheckCircle className="h-5 w-5 text-blue-600 flex-shrink-0" />
                     ) : (
-                      <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
+                      <div className="h-5 w-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
                     )}
-                    <span className={`text-sm font-medium ${apiKey.trim() ? 'text-blue-700' : 'text-gray-500'}`}>
+                    <span className={`text-sm font-medium whitespace-nowrap ${apiKey.trim() ? 'text-blue-700' : 'text-gray-500'}`}>
                       API Key (Optional)
                     </span>
                   </div>
                 </div>
 
-                {/* Execute Button */}
+                {/* Execute Button - Mobile Responsive */}
                 <Button
                   onClick={handleExecute}
                   disabled={Boolean(!file || jobDescription.trim().length === 0 || isLoading)}
                   size="lg"
-                  className="px-16 py-7 text-xl font-bold shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="w-full sm:w-auto px-8 sm:px-16 py-6 sm:py-7 text-lg sm:text-xl font-bold shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="mr-3 h-7 w-7 animate-spin" />
-                      Agents Processing...
+                      <Loader2 className="mr-2 sm:mr-3 h-6 sm:h-7 w-6 sm:w-7 animate-spin" />
+                      <span className="text-base sm:text-xl">Processing...</span>
                     </>
                   ) : (
                     <>
-                      <Bot className="mr-3 h-7 w-7" />
-                      Start Agentic Analysis
+                      <Bot className="mr-2 sm:mr-3 h-6 sm:h-7 w-6 sm:w-7" />
+                      <span className="text-base sm:text-xl">Start Agentic Analysis</span>
                     </>
                   )}
                 </Button>
 
-                {/* Helper Text */}
+                {/* Helper Text - Mobile Responsive */}
                 {(!file || !jobDescription.trim()) && (
-                  <p className="text-sm text-gray-600 text-center">
+                  <p className="text-xs sm:text-sm text-gray-600 text-center px-4">
                     {!file && !jobDescription.trim() 
                       ? '📌 Please upload a resume and add job description to continue'
                       : !file
@@ -409,8 +410,8 @@ Example:
                 )}
                 
                 {file && jobDescription.trim() && !isLoading && (
-                  <p className="text-sm text-green-700 font-medium text-center flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4" />
+                  <p className="text-xs sm:text-sm text-green-700 font-medium text-center flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-4">
+                    <CheckCircle className="h-4 w-4 flex-shrink-0" />
                     <span>Ready to analyze! Click the button above to start.</span>
                   </p>
                 )}
@@ -816,28 +817,85 @@ Example:
               </Card>
             </div>
 
-            {/* AI Suggestions */}
-            <Card className="border-purple-200 bg-purple-50">
+            {/* AI-Powered Suggestions - Top 3 */}
+            <Card className="border-purple-300 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-100">
               <CardHeader>
-                <CardTitle className="text-purple-700">
-                  💡 {result.suggestions.usedAI ? 'AI-Powered' : 'ML-Based'} Suggestions
-                </CardTitle>
-                <CardDescription>
-                  {result.suggestions.usedAI 
-                    ? `Generated by ${result.suggestions.model}`
-                    : 'Generated by ML analysis'
-                  }
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-purple-800 flex items-center space-x-2 text-2xl">
+                      <span>💡</span>
+                      <span>Top 3 Improvement Suggestions</span>
+                    </CardTitle>
+                    <CardDescription className="mt-2">
+                      {result.suggestions.usedAI 
+                        ? `✨ AI-powered recommendations from ${result.suggestions.model}`
+                        : '🤖 ML-based recommendations'
+                      }
+                    </CardDescription>
+                  </div>
+                  {result.suggestions.usedAI && (
+                    <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                      AI-Powered
+                    </div>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-3">
-                  {result.suggestions.suggestions.map((suggestion, idx) => (
-                    <li key={idx} className="flex items-start space-x-2 p-3 bg-white rounded-lg">
-                      <span className="text-purple-600 font-bold flex-shrink-0">{idx + 1}.</span>
-                      <span className="text-sm text-gray-700">{suggestion}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="space-y-4">
+                  {result.suggestions.suggestions.slice(0, 3).map((suggestion, idx) => {
+                    // Extract category and content if formatted with **Category:**
+                    const categoryMatch = suggestion.match(/^\*\*([^:]+):\*\*\s*(.+)/);
+                    const category = categoryMatch ? categoryMatch[1] : null;
+                    const content = categoryMatch ? categoryMatch[2] : suggestion;
+                    
+                    const colors = [
+                      { bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-500', text: 'text-blue-700' },
+                      { bg: 'bg-green-50', border: 'border-green-200', badge: 'bg-green-500', text: 'text-green-700' },
+                      { bg: 'bg-orange-50', border: 'border-orange-200', badge: 'bg-orange-500', text: 'text-orange-700' }
+                    ];
+                    
+                    const color = colors[idx];
+                    
+                    return (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className={`relative p-5 ${color.bg} border-2 ${color.border} rounded-xl shadow-md hover:shadow-lg transition-all`}
+                      >
+                        {/* Number Badge */}
+                        <div className={`absolute -left-3 -top-3 w-10 h-10 ${color.badge} text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg`}>
+                          {idx + 1}
+                        </div>
+                        
+                        {/* Category Badge */}
+                        {category && (
+                          <div className="mb-2">
+                            <span className={`inline-block ${color.badge} text-white px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide`}>
+                              {category}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Content */}
+                        <p className={`text-sm ${color.text} leading-relaxed pl-2`}>
+                          {content}
+                        </p>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+                
+                {/* Footer */}
+                <div className="mt-6 pt-4 border-t-2 border-purple-200">
+                  <p className="text-xs text-purple-700 text-center font-medium">
+                    {result.suggestions.usedAI 
+                      ? '✨ These AI-powered suggestions are tailored specifically to improve your match for this role'
+                      : '💼 These suggestions are generated using machine learning analysis'
+                    }
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
