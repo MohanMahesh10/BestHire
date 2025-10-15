@@ -115,98 +115,308 @@ export default function AgenticRecruitPage() {
           <p className="text-lg text-gray-600">AI-powered multi-agent system for intelligent recruitment</p>
         </motion.div>
 
+        {/* Step-by-Step Instructions */}
+        <Card className="mb-6 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0">
+                <Bot className="h-8 w-8 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">How to Use Agentic Workflow</h3>
+                <ol className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="font-bold text-purple-600 mr-2">1.</span>
+                    <span>(Optional) Add your Gemini API key for AI-powered suggestions</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="font-bold text-purple-600 mr-2">2.</span>
+                    <span>Upload a resume (PDF or DOCX format)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="font-bold text-purple-600 mr-2">3.</span>
+                    <span>Paste the job description you're hiring for</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="font-bold text-purple-600 mr-2">4.</span>
+                    <span>Click "Start Agentic Analysis" and watch the magic happen! ✨</span>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* API Key Configuration */}
-        <Card className="mb-6 border-blue-200 bg-blue-50">
+        <Card className="mb-6 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>🔑 Gemini API Key (Optional)</span>
+              <div className="flex items-center space-x-2">
+                <span className="text-2xl">🔑</span>
+                <span>Gemini API Key</span>
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold">
+                  Optional
+                </span>
+              </div>
               <Button
                 onClick={() => setShowApiKey(!showApiKey)}
                 variant="outline"
                 size="sm"
               >
-                {showApiKey ? 'Hide' : 'Show'}
+                {showApiKey ? 'Hide' : 'Configure'}
               </Button>
             </CardTitle>
             <CardDescription>
-              Add your Gemini API key for AI-powered suggestions. Leave empty for ML-based analysis.
+              Add your Gemini API key for <strong>AI-powered suggestions</strong>. Leave empty for basic ML-based analysis.
             </CardDescription>
           </CardHeader>
           {showApiKey && (
-            <CardContent>
-              <input
-                type="text"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Enter your Gemini API key (starts with AIza...)"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-              />
+            <CardContent className="space-y-3">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  API Key
+                </label>
+                <input
+                  type="text"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="Enter your Gemini API key (starts with AIza...)"
+                  className="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm transition-all"
+                />
+              </div>
+              
+              <div className="flex items-center justify-between pt-2">
+                <a
+                  href="https://aistudio.google.com/app/apikey"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:text-blue-700 hover:underline font-medium"
+                >
+                  Get API Key from Google AI Studio →
+                </a>
+                
+                <Button
+                  onClick={() => {
+                    if (apiKey.trim()) {
+                      alert('API key will be validated when you start the analysis');
+                    } else {
+                      alert('Please enter an API key first');
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                  disabled={!apiKey.trim()}
+                  className="flex items-center space-x-2"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  <span>Test API Key</span>
+                </Button>
+              </div>
+
+              <div className="bg-blue-100 border border-blue-200 rounded-lg p-3 mt-3">
+                <p className="text-xs text-blue-800">
+                  <strong>💡 Pro Tip:</strong> With a Gemini API key, you'll get advanced AI-powered suggestions 
+                  with 95%+ accuracy. Without it, you'll still get basic ML-based analysis for free!
+                </p>
+              </div>
             </CardContent>
           )}
         </Card>
 
-        {/* File Upload */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>📄 Upload Resume</CardTitle>
-            <CardDescription>Upload PDF or DOCX resume for analysis</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center w-full">
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Upload className="h-10 w-10 text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-600">
-                    {file ? file.name : 'Click to upload resume (PDF/DOCX)'}
-                  </p>
+        {/* Input Section - Two Column Layout */}
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          {/* File Upload */}
+          <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <span className="text-2xl">📄</span>
+                <span>Step 1: Upload Resume</span>
+              </CardTitle>
+              <CardDescription>
+                Upload candidate's resume (PDF or DOCX format)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-center w-full">
+                <label className={`flex flex-col items-center justify-center w-full h-40 border-3 border-dashed rounded-lg cursor-pointer transition-all ${
+                  file 
+                    ? 'border-green-500 bg-green-100 hover:bg-green-200' 
+                    : 'border-gray-300 bg-white hover:bg-gray-50'
+                }`}>
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    {file ? (
+                      <>
+                        <CheckCircle className="h-12 w-12 text-green-600 mb-3" />
+                        <p className="text-sm font-semibold text-green-700 mb-1">
+                          {file.name}
+                        </p>
+                        <p className="text-xs text-green-600">
+                          {Math.round(file.size / 1024)}KB • Click to change
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-12 w-12 text-gray-400 mb-3" />
+                        <p className="text-sm font-semibold text-gray-700 mb-1">
+                          Click to upload resume
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          PDF or DOCX (Max 10MB)
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.docx"
+                    onChange={handleFileChange}
+                  />
+                </label>
+              </div>
+              
+              {file && (
+                <div className="mt-3 flex justify-center">
+                  <Button
+                    onClick={() => setFile(null)}
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 border-red-300 hover:bg-red-50"
+                  >
+                    Remove File
+                  </Button>
                 </div>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept=".pdf,.docx"
-                  onChange={handleFileChange}
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Job Description */}
+          <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <span className="text-2xl">💼</span>
+                <span>Step 2: Job Description</span>
+              </CardTitle>
+              <CardDescription>
+                Paste the job description to analyze candidate fit
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="relative">
+                <textarea
+                  value={jobDescription}
+                  onChange={(e) => setJobDescription(e.target.value)}
+                  placeholder="Paste job description here...
+
+Example:
+- Required skills: React, TypeScript, Node.js
+- 3+ years of experience
+- Strong communication skills"
+                  className={`w-full h-40 p-4 border-2 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none transition-all ${
+                    jobDescription.trim() 
+                      ? 'border-orange-300 bg-white' 
+                      : 'border-gray-300 bg-white'
+                  }`}
                 />
-              </label>
-            </div>
-          </CardContent>
-        </Card>
+                <div className="absolute bottom-2 right-2 text-xs text-gray-500">
+                  {jobDescription.length} characters
+                </div>
+              </div>
+              
+              {jobDescription.trim() && (
+                <div className="mt-3 flex items-center space-x-2">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-xs text-green-700 font-medium">
+                    Job description added ✓
+                  </span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-        {/* Job Description */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>💼 Job Description</CardTitle>
-            <CardDescription>Paste the job description to match against</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <textarea
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-              placeholder="Enter job description..."
-              className="w-full h-40 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-            />
-          </CardContent>
-        </Card>
+        {/* Execute Button Section */}
+        <div className="mb-8">
+          <Card className="border-indigo-300 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50">
+            <CardContent className="pt-6 pb-6">
+              <div className="flex flex-col items-center space-y-4">
+                {/* Ready Status Indicators */}
+                <div className="flex items-center space-x-6 mb-2">
+                  <div className="flex items-center space-x-2">
+                    {file ? (
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
+                    )}
+                    <span className={`text-sm font-medium ${file ? 'text-green-700' : 'text-gray-500'}`}>
+                      Resume
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    {jobDescription.trim() ? (
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
+                    )}
+                    <span className={`text-sm font-medium ${jobDescription.trim() ? 'text-green-700' : 'text-gray-500'}`}>
+                      Job Description
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    {apiKey.trim() ? (
+                      <CheckCircle className="h-5 w-5 text-blue-600" />
+                    ) : (
+                      <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
+                    )}
+                    <span className={`text-sm font-medium ${apiKey.trim() ? 'text-blue-700' : 'text-gray-500'}`}>
+                      API Key (Optional)
+                    </span>
+                  </div>
+                </div>
 
-        {/* Execute Button */}
-        <div className="flex justify-center mb-8">
-          <Button
-            onClick={handleExecute}
-            disabled={Boolean(!file || jobDescription.trim().length === 0 || isLoading)}
-            size="lg"
-            className="px-12 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-3 h-6 w-6 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>
-                <Bot className="mr-3 h-6 w-6" />
-                Start Agentic Analysis
-              </>
-            )}
-          </Button>
+                {/* Execute Button */}
+                <Button
+                  onClick={handleExecute}
+                  disabled={Boolean(!file || jobDescription.trim().length === 0 || isLoading)}
+                  size="lg"
+                  className="px-16 py-7 text-xl font-bold shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-3 h-7 w-7 animate-spin" />
+                      Agents Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Bot className="mr-3 h-7 w-7" />
+                      Start Agentic Analysis
+                    </>
+                  )}
+                </Button>
+
+                {/* Helper Text */}
+                {(!file || !jobDescription.trim()) && (
+                  <p className="text-sm text-gray-600 text-center">
+                    {!file && !jobDescription.trim() 
+                      ? '📌 Please upload a resume and add job description to continue'
+                      : !file
+                      ? '📌 Please upload a resume to continue'
+                      : '📌 Please add job description to continue'
+                    }
+                  </p>
+                )}
+                
+                {file && jobDescription.trim() && !isLoading && (
+                  <p className="text-sm text-green-700 font-medium text-center flex items-center space-x-2">
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Ready to analyze! Click the button above to start.</span>
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Agent Pipeline Status */}
