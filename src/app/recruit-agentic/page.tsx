@@ -191,7 +191,7 @@ export default function AgenticRecruitPage() {
         <div className="flex justify-center mb-8">
           <Button
             onClick={handleExecute}
-            disabled={file === null || jobDescription.trim() === "" || isLoading}
+            disabled={Boolean(!file || jobDescription.trim().length === 0 || isLoading)}
             size="lg"
             className="px-12 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
           >
