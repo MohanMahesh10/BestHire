@@ -211,65 +211,289 @@ export default function AgenticRecruitPage() {
 
         {/* Agent Pipeline Status */}
         {orchestratorState && orchestratorState.currentAgent !== 'idle' && (
-          <Card className="mb-6 border-indigo-200 bg-indigo-50">
-            <CardHeader>
-              <CardTitle>🤖 Agent Pipeline</CardTitle>
-              <CardDescription>Multi-agent system processing your request</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Progress Bar */}
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="font-medium">Progress</span>
-                  <span className="text-gray-600">{orchestratorState.progress}%</span>
-                </div>
-                <Progress value={orchestratorState.progress} className="h-3" />
-              </div>
-
-              {/* Agent Status */}
-              <div className="space-y-2">
-                {apiKey.trim() && (
-                  <div className="flex items-center space-x-3 p-2 rounded bg-white">
-                    {getAgentStatusIcon('auth')}
-                    <span className="font-medium text-sm">Auth & Config Agent</span>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <Card className="border-indigo-200 bg-gradient-to-br from-indigo-50 to-purple-50">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Bot className="h-6 w-6 text-indigo-600 animate-pulse" />
+                  <span>🤖 Agentic Workflow Pipeline</span>
+                </CardTitle>
+                <CardDescription>Event-driven multi-agent system executing specialized tasks</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Overall Progress Bar */}
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="font-semibold text-gray-700">Overall Progress</span>
+                    <span className="text-indigo-600 font-bold">{orchestratorState.progress}%</span>
                   </div>
+                  <Progress value={orchestratorState.progress} className="h-4" />
+                </div>
+
+                {/* Agent Pipeline Cards */}
+                <div className="space-y-3">
+                  {/* Auth Agent (only if API key provided) */}
+                  {apiKey.trim() && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0 }}
+                      className={`p-4 rounded-lg border-2 transition-all ${
+                        orchestratorState.currentAgent === 'auth'
+                          ? 'border-blue-500 bg-blue-50 shadow-lg'
+                          : orchestratorState.auth
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-gray-200 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            orchestratorState.auth
+                              ? 'bg-green-500 text-white'
+                              : orchestratorState.currentAgent === 'auth'
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-gray-200 text-gray-500'
+                          }`}>
+                            {orchestratorState.auth ? '✓' : '🔐'}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900">Auth & Config Agent</h4>
+                            <p className="text-xs text-gray-600">Validates API credentials & configuration</p>
+                          </div>
+                        </div>
+                        {getAgentStatusIcon('auth')}
+                      </div>
+                    </motion.div>
+                  )}
+                  
+                  {/* Ingestion Agent */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      orchestratorState.currentAgent === 'ingestion'
+                        ? 'border-blue-500 bg-blue-50 shadow-lg'
+                        : orchestratorState.ingestion
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          orchestratorState.ingestion
+                            ? 'bg-green-500 text-white'
+                            : orchestratorState.currentAgent === 'ingestion'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-200 text-gray-500'
+                        }`}>
+                          {orchestratorState.ingestion ? '✓' : '📄'}
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Ingestion Agent</h4>
+                          <p className="text-xs text-gray-600">Extracts text from PDF/DOCX using PDF.js</p>
+                        </div>
+                      </div>
+                      {getAgentStatusIcon('ingestion')}
+                    </div>
+                    {orchestratorState.ingestion && (
+                      <div className="mt-2 pl-13 text-xs text-gray-600">
+                        ✓ Extracted {orchestratorState.ingestion.pageCount || 1} pages • {Math.round(orchestratorState.ingestion.fileSize / 1024)}KB
+                      </div>
+                    )}
+                  </motion.div>
+
+                  {/* Profiling Agent */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      orchestratorState.currentAgent === 'profiling'
+                        ? 'border-blue-500 bg-blue-50 shadow-lg'
+                        : orchestratorState.profile
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          orchestratorState.profile
+                            ? 'bg-green-500 text-white'
+                            : orchestratorState.currentAgent === 'profiling'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-200 text-gray-500'
+                        }`}>
+                          {orchestratorState.profile ? '✓' : '👤'}
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Profiling Agent</h4>
+                          <p className="text-xs text-gray-600">Parses candidate data (name, skills, experience)</p>
+                        </div>
+                      </div>
+                      {getAgentStatusIcon('profiling')}
+                    </div>
+                    {orchestratorState.profile && (
+                      <div className="mt-2 pl-13 text-xs text-gray-600">
+                        ✓ Identified {orchestratorState.profile.skills.length} skills • {orchestratorState.profile.experience.length} experiences
+                      </div>
+                    )}
+                  </motion.div>
+
+                  {/* Matching Agent */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      orchestratorState.currentAgent === 'matching'
+                        ? 'border-blue-500 bg-blue-50 shadow-lg'
+                        : orchestratorState.matching
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          orchestratorState.matching
+                            ? 'bg-green-500 text-white'
+                            : orchestratorState.currentAgent === 'matching'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-200 text-gray-500'
+                        }`}>
+                          {orchestratorState.matching ? '✓' : '🎯'}
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Matching Agent</h4>
+                          <p className="text-xs text-gray-600">Calculates job-resume compatibility score</p>
+                        </div>
+                      </div>
+                      {getAgentStatusIcon('matching')}
+                    </div>
+                    {orchestratorState.matching && (
+                      <div className="mt-2 pl-13 text-xs text-gray-600">
+                        ✓ Match Score: {orchestratorState.matching.score}% • Category: {orchestratorState.matching.fitCategory}
+                      </div>
+                    )}
+                  </motion.div>
+
+                  {/* Insights Agent */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      orchestratorState.currentAgent === 'insights'
+                        ? 'border-blue-500 bg-blue-50 shadow-lg'
+                        : orchestratorState.insights
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          orchestratorState.insights
+                            ? 'bg-green-500 text-white'
+                            : orchestratorState.currentAgent === 'insights'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-200 text-gray-500'
+                        }`}>
+                          {orchestratorState.insights ? '✓' : '💡'}
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Insights Agent</h4>
+                          <p className="text-xs text-gray-600">Analyzes strengths, weaknesses & improvement areas</p>
+                        </div>
+                      </div>
+                      {getAgentStatusIcon('insights')}
+                    </div>
+                    {orchestratorState.insights && (
+                      <div className="mt-2 pl-13 text-xs text-gray-600">
+                        ✓ Found {orchestratorState.insights.strengths.length} strengths • {orchestratorState.insights.weaknesses.length} areas to improve
+                      </div>
+                    )}
+                  </motion.div>
+
+                  {/* Suggestions Agent */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      orchestratorState.currentAgent === 'suggestions'
+                        ? 'border-blue-500 bg-blue-50 shadow-lg'
+                        : orchestratorState.suggestions
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          orchestratorState.suggestions
+                            ? 'bg-green-500 text-white'
+                            : orchestratorState.currentAgent === 'suggestions'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-200 text-gray-500'
+                        }`}>
+                          {orchestratorState.suggestions ? '✓' : '✨'}
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Suggestions Agent</h4>
+                          <p className="text-xs text-gray-600">Generates AI-powered actionable recommendations</p>
+                        </div>
+                      </div>
+                      {getAgentStatusIcon('suggestions')}
+                    </div>
+                    {orchestratorState.suggestions && (
+                      <div className="mt-2 pl-13 text-xs text-gray-600">
+                        ✓ Generated {orchestratorState.suggestions.suggestions.length} suggestions • {orchestratorState.suggestions.usedAI ? 'AI-powered' : 'ML-based'}
+                      </div>
+                    )}
+                  </motion.div>
+                </div>
+
+                {/* Error Display */}
+                {orchestratorState.error && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-4 bg-red-50 border-2 border-red-200 rounded-lg flex items-start space-x-3"
+                  >
+                    <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-red-800 mb-1">Agent Pipeline Error</p>
+                      <p className="text-sm text-red-700">{orchestratorState.error}</p>
+                    </div>
+                  </motion.div>
                 )}
-                
-                <div className="flex items-center space-x-3 p-2 rounded bg-white">
-                  {getAgentStatusIcon('ingestion')}
-                  <span className="font-medium text-sm">Ingestion Agent</span>
-                </div>
 
-                <div className="flex items-center space-x-3 p-2 rounded bg-white">
-                  {getAgentStatusIcon('profiling')}
-                  <span className="font-medium text-sm">Profiling Agent</span>
-                </div>
-
-                <div className="flex items-center space-x-3 p-2 rounded bg-white">
-                  {getAgentStatusIcon('matching')}
-                  <span className="font-medium text-sm">Matching Agent</span>
-                </div>
-
-                <div className="flex items-center space-x-3 p-2 rounded bg-white">
-                  {getAgentStatusIcon('insights')}
-                  <span className="font-medium text-sm">Insights Agent</span>
-                </div>
-
-                <div className="flex items-center space-x-3 p-2 rounded bg-white">
-                  {getAgentStatusIcon('suggestions')}
-                  <span className="font-medium text-sm">Suggestions Agent</span>
-                </div>
-              </div>
-
-              {/* Error Display */}
-              {orchestratorState.error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-2">
-                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-800">{orchestratorState.error}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                {/* Completion Message */}
+                {orchestratorState.completed && !orchestratorState.error && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-4 bg-green-50 border-2 border-green-200 rounded-lg flex items-center space-x-3"
+                  >
+                    <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-green-800">All Agents Completed Successfully! 🎉</p>
+                      <p className="text-sm text-green-700">Scroll down to view the comprehensive analysis results.</p>
+                    </div>
+                  </motion.div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
         )}
 
         {/* Results */}
