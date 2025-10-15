@@ -62,37 +62,42 @@ export class IngestionAgent extends BaseAgent<IngestionInput, IngestionResult> {
   }
 
   private async extractPDFText(file: File): Promise<{ text: string; pageCount: number }> {
-    const pdfjsLib = await import('pdfjs-dist');
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+    try {
+      const pdfjsLib = await import('pdfjs-dist');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-    const textParts: string[] = [];
+      const textParts: string[] = [];
 
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      const page = await pdf.getPage(pageNum);
-      const textContent = await page.getTextContent();
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
 
-      const pageText = textContent.items
-        .map((item: any) => ('str' in item ? item.str : ''))
-        .filter((text: string) => text.trim().length > 0)
-        .join(' ');
+        const pageText = textContent.items
+          .map((item: any) => ('str' in item ? item.str : ''))
+          .filter((text: string) => text.trim().length > 0)
+          .join(' ');
 
-      if (pageText.trim()) {
-        textParts.push(pageText);
+        if (pageText.trim()) {
+          textParts.push(pageText);
+        }
       }
+
+      const fullText = textParts.join('\n\n')
+        .replace(/\s+/g, ' ')
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .trim();
+
+      return {
+        text: fullText,
+        pageCount: pdf.numPages,
+      };
+    } catch (error: any) {
+      console.error('PDF extraction error:', error);
+      throw new Error(`Failed to parse PDF: ${error?.message || 'Unknown error'}. Please ensure the PDF is not corrupted and contains selectable text.`);
     }
-
-    const fullText = textParts.join('\n\n')
-      .replace(/\s+/g, ' ')
-      .replace(/([a-z])([A-Z])/g, '$1 $2')
-      .trim();
-
-    return {
-      text: fullText,
-      pageCount: pdf.numPages,
-    };
   }
 
   private async extractDOCXText(file: File): Promise<string> {
