@@ -9,9 +9,9 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-**Intelligent Resume Parsing • Google Gemini AI Integration • Real-time Suggestions**
+**Agentic Architecture • Intelligent Resume Parsing • Google Gemini AI Integration • Real-time Suggestions**
 
-[Live Demo](https://mohanmahesh10.github.io/BestHire/) • [Features](#features) • [Quick Start](#quick-start) • [API Setup](#google-gemini-api-setup)
+[Live Demo](https://mohanmahesh10.github.io/BestHire/) • [Features](#features) • [Agentic Architecture](#-agentic-architecture) • [Quick Start](#quick-start) • [API Setup](#google-gemini-api-setup)
 
 </div>
 
@@ -19,17 +19,82 @@
 
 ## 📋 Overview
 
-BestHire is a streamlined AI recruitment platform that simplifies the hiring process with intelligent resume parsing and AI-powered suggestions. Upload resumes, paste job descriptions, and get instant AI-generated hiring recommendations powered by Google Gemini API.
+BestHire is a cutting-edge AI recruitment platform featuring **agentic architecture** that simplifies the hiring process with intelligent resume parsing and AI-powered suggestions. Built with specialized agents working in coordination, each handling a single responsibility for optimal performance and reliability.
+
+### 🆕 Two Modes Available
+
+1. **🤖 Agentic Mode** (Recommended) - Event-driven architecture with 6 specialized agents
+2. **⚡ Classic Mode** - Direct processing for quick analysis
 
 ### Key Highlights
 
-- 🚀 **Lightning Fast** - Process PDF resumes instantly with custom binary parser
-- 🤖 **AI-Powered** - Google Gemini 2.0 Flash integration for intelligent suggestions
+- 🤖 **Agentic Architecture** - 6 specialized agents with orchestrator coordination
+- 🚀 **Lightning Fast** - Process PDF resumes instantly with PDF.js library
+- � **AI-Powered** - Google Gemini 2.0 Flash integration for intelligent suggestions
 - 🔒 **Privacy First** - API key stored securely in browser, no backend required
-- � **Smart Suggestions** - Get actionable hiring recommendations with AI analysis
-- 🎨 **Modern UI** - Clean, responsive design with Framer Motion animations
+- 💡 **Smart Suggestions** - Get actionable hiring recommendations with AI analysis
+- 🎨 **Modern UI** - Clean, responsive design with real-time progress tracking
 - ⚡ **Zero Backend** - Runs entirely in the browser with localStorage
 - 🔄 **ML Fallback** - Built-in NLP parser when API key is not provided
+- 📊 **Observable State** - Real-time agent execution tracking and error handling
+
+---
+
+## 🤖 Agentic Architecture
+
+BestHire features a **modular, event-driven agentic architecture** where specialized agents work in coordination, managed by an orchestrator. Each agent has a single responsibility, ensuring reliability, testability, and maintainability.
+
+### Agent Pipeline
+
+```
+┌─────────────────┐
+│  Orchestrator   │  ← Coordinates all agents, manages state & retries
+└────────┬────────┘
+         │
+    ┌────▼────┐
+    │  Auth   │  ← Validates Gemini API key
+    └────┬────┘
+         │
+    ┌────▼────────┐
+    │ Ingestion   │  ← Extracts text from PDF/DOCX using PDF.js
+    └────┬────────┘
+         │
+    ┌────▼─────────┐
+    │  Profiling   │  ← Parses resume into structured data
+    └────┬─────────┘
+         │
+    ┌────▼────────┐
+    │  Matching   │  ← Calculates job-resume match score
+    └────┬────────┘
+         │
+    ┌────▼────────┐
+    │  Insights   │  ← Generates strengths & weaknesses
+    └────┬────────┘
+         │
+    ┌────▼──────────┐
+    │ Suggestions   │  ← AI-powered recommendations
+    └───────────────┘
+```
+
+### The 6 Agents
+
+1. **🔐 Auth Agent** - Validates and stores Gemini API key
+2. **📄 Ingestion Agent** - PDF/DOCX parsing with PDF.js
+3. **👤 Profiling Agent** - Candidate profile extraction (name, email, skills, experience)
+4. **🎯 Matching Agent** - Job-resume matching with TF-IDF & cosine similarity
+5. **💡 Insights Agent** - Analyzes strengths, weaknesses, improvement areas
+6. **✨ Suggestions Agent** - AI-powered actionable recommendations
+
+### Benefits
+
+- ✅ **Single Responsibility** - Each agent does one thing well
+- ✅ **Event-Driven** - Real-time progress tracking
+- ✅ **Fault Tolerant** - Agent-level retries and error handling
+- ✅ **Observable** - Full state management with progress updates
+- ✅ **Testable** - Each agent can be tested independently
+- ✅ **Maintainable** - Easy to modify or replace individual agents
+
+📚 **[Read Full Documentation](./AGENTIC_ARCHITECTURE.md)**
 
 ---
 
@@ -37,11 +102,11 @@ BestHire is a streamlined AI recruitment platform that simplifies the hiring pro
 
 ### 🔍 Intelligent Resume Parsing
 
-- **PDF Support**: Custom binary PDF parser with dual extraction methods
+- **PDF Support**: Industry-standard PDF.js library for reliable extraction
+- **DOCX Support**: Mammoth.js for Word document processing
 - **Smart Extraction**: Automatically identify names, emails, phone numbers, and skills
-- **Advanced Text Processing**: Handles parentheses patterns, TJ/Tj operators, escape sequences
-- **Deduplication**: Smart text cleanup to avoid repeated content
-- **Validation**: Filters invalid names, headers, and page numbers
+- **Multi-page Support**: Handles resumes of any length
+- **Error Handling**: Detailed error messages for debugging
 
 ### 🤖 Google Gemini AI Integration
 
@@ -68,8 +133,16 @@ BestHire is a streamlined AI recruitment platform that simplifies the hiring pro
 - ✅ Built-in NLP with compromise.js
 - ⚠️ Basic suggestions only
 
-### 💼 Streamlined Workflow
+### 💼 Streamlined Workflows
 
+#### 🤖 Agentic Mode (`/recruit-agentic`)
+1. **Configure API Key** (optional) - Enter Google Gemini API key
+2. **Upload Resume** - Select PDF/DOCX file
+3. **Paste Job Description** - Copy/paste the JD
+4. **Start Analysis** - Watch agents execute sequentially
+5. **View Results** - See progress, profile, match score, insights, and AI suggestions
+
+#### ⚡ Classic Mode (`/recruit`)
 1. **Upload Resume** - Drag & drop or select PDF file
 2. **Paste Job Description** - Copy/paste the JD you're hiring for
 3. **Configure API** (optional) - Enter Google Gemini API key for AI suggestions
@@ -102,6 +175,11 @@ npm run dev
 
 The app will open at `http://localhost:3000/BestHire/` (or port 3001 if 3000 is in use).
 
+### Access the App
+
+- **🤖 Agentic Mode**: `http://localhost:3000/recruit-agentic` (Recommended)
+- **⚡ Classic Mode**: `http://localhost:3000/recruit`
+
 ### Google Gemini API Setup
 
 1. Get your API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
@@ -116,7 +194,9 @@ The app will open at `http://localhost:3000/BestHire/` (or port 3001 if 3000 is 
 
 The project is automatically deployed to GitHub Pages on every push to main branch.
 
-**Live URL**: [https://mohanmahesh10.github.io/BestHire/](https://mohanmahesh10.github.io/BestHire/)
+**Production URLs**:
+- 🤖 **Agentic Mode**: [https://mohanmahesh10.github.io/BestHire/recruit-agentic](https://mohanmahesh10.github.io/BestHire/recruit-agentic)
+- ⚡ **Classic Mode**: [https://mohanmahesh10.github.io/BestHire/recruit](https://mohanmahesh10.github.io/BestHire/recruit)
 
 To deploy manually:
 ```bash
@@ -131,27 +211,39 @@ npm run deploy
 ```
 BestHire/
 ├── src/
-│   ├── app/                    # Next.js app directory
-│   │   ├── recruit/           # Main recruitment workflow page
-│   │   ├── api/               # API routes (health, pdf parsing)
-│   │   └── layout.tsx         # Root layout
-│   ├── components/            # Reusable UI components
+│   ├── app/                      # Next.js app directory
+│   │   ├── recruit/             # Classic recruitment workflow
+│   │   ├── recruit-agentic/     # 🆕 Agentic architecture UI
+│   │   ├── api/                 # API routes (health, pdf parsing)
+│   │   └── layout.tsx           # Root layout
+│   ├── components/              # Reusable UI components
 │   │   ├── Button.tsx
 │   │   ├── Card.tsx
 │   │   ├── Navigation.tsx
 │   │   └── Progress.tsx
-│   ├── lib/                   # Core libraries
-│   │   ├── gemini.ts          # Gemini API integration
-│   │   ├── ml-parser.ts       # Local ML/NLP processing
-│   │   ├── parsers.ts         # PDF/DOCX parsing
-│   │   └── utils.ts           # Utility functions
-│   └── types/                 # TypeScript definitions
+│   ├── lib/
+│   │   ├── agents/              # 🆕 Agentic Architecture
+│   │   │   ├── auth-agent.ts       # API key validation
+│   │   │   ├── ingestion-agent.ts  # PDF/DOCX parsing
+│   │   │   ├── profiling-agent.ts  # Profile extraction
+│   │   │   ├── matching-agent.ts   # Job matching
+│   │   │   ├── insights-agent.ts   # Analysis
+│   │   │   ├── suggestions-agent.ts # AI recommendations
+│   │   │   ├── orchestrator.ts     # Coordinates agents
+│   │   │   ├── types.ts            # Agent interfaces
+│   │   │   └── index.ts            # Barrel export
+│   │   ├── gemini.ts            # Gemini API integration
+│   │   ├── ml-parser.ts         # Local ML/NLP processing
+│   │   ├── parsers.ts           # PDF/DOCX parsing (classic)
+│   │   └── utils.ts             # Utility functions
+│   └── types/                   # TypeScript definitions
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml         # GitHub Pages deployment
-├── public/                    # Static assets
-├── package.json               # Dependencies
-└── README.md                  # Documentation
+│       └── deploy.yml           # GitHub Pages deployment
+├── public/                      # Static assets
+├── AGENTIC_ARCHITECTURE.md      # 🆕 Architecture documentation
+├── package.json                 # Dependencies
+└── README.md                    # Documentation
 ```
 
 ---
@@ -170,14 +262,18 @@ BestHire/
 - **Primary**: Google Gemini API (@google/genai v0.2.0)
   - Models: gemini-2.0-flash-exp, gemini-1.5-flash
 - **Fallback**: compromise.js (NLP)
+- **Document Processing**: 
+  - PDF.js (pdfjs-dist v3.11.174) - Industry-standard PDF parsing
+  - Mammoth.js - DOCX parsing
 - **Embeddings**: Custom TF-IDF implementation
 
-### File Processing
-- **PDF**: Custom binary parser (no external libraries)
-  - Supports TJ/Tj operators, escape sequences
-  - Latin-1 encoding with deduplication
-- **DOCX**: mammoth
-- **Validation**: Name filtering, header removal
+### Architecture
+- **🆕 Agentic Mode**: Event-driven, modular agent system
+  - Single Responsibility Principle per agent
+  - Orchestrator for coordination & retries
+  - Observable state management
+  - Real-time progress tracking
+- **Classic Mode**: Direct processing pipeline
 
 ### Data & Storage
 - **Client-side**: localStorage (API keys, preferences)
