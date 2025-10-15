@@ -193,7 +193,23 @@ export class AgentOrchestrator {
         rawText: ingestionResult.text,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      let errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      // Make error messages more user-friendly
+      if (errorMessage.includes('Could not extract candidate name')) {
+        errorMessage = '❌ Could not extract candidate name from resume. The PDF may be image-based or poorly formatted. Try a different file with selectable text.';
+      } else if (errorMessage.includes('Could not extract candidate email')) {
+        errorMessage = '❌ Could not find email address in resume. Please ensure the resume contains contact information.';
+      } else if (errorMessage.includes('Failed to parse PDF')) {
+        errorMessage = '❌ Failed to parse PDF. The file may be corrupted or password-protected. Please try a different file.';
+      } else if (errorMessage.includes('Insufficient text')) {
+        errorMessage = '❌ Not enough text extracted from resume. The PDF may be image-based. Try using a PDF with selectable text.';
+      } else if (errorMessage.includes('Gemini API')) {
+        errorMessage = '❌ API key is invalid or expired. Please check your Gemini API key and try again.';
+      } else {
+        errorMessage = `❌ ${errorMessage}`;
+      }
+      
       this.updateState({
         currentAgent: 'failed',
         error: errorMessage,
