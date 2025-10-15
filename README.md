@@ -3,7 +3,7 @@
 
 ![Purple Pink Gradient Mobile Application Presentation](https://github.com/user-attachments/assets/521439ac-3dd9-4d9b-a99c-409e7a5c016e)
 
-![Purple Pink Gradient Mobile Application Presentation (1)](https://github.com/user-attachments/assets/a175d309-b9a2-42e8-806c-ef544b14fc44)
+
 
 <div align="center">
 
